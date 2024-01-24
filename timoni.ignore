@@ -1,8 +1,13 @@
 # VCS
 .git/
+.github
 .gitignore
 .gitmodules
 .gitattributes
+
+# Idea
+*.iml
+.idea/
 
 # Go
 vendor/
@@ -12,3 +17,4 @@ go.sum
 # CUE
 *_tool.cue
 debug_values.cue
+test/

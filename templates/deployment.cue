@@ -6,61 +6,174 @@ import (
 )
 
 #Deployment: appsv1.#Deployment & {
-	#config:    #Config
-	apiVersion: "apps/v1"
-	kind:       "Deployment"
-	metadata:   #config.metadata
+	#config:         #Config
+	#cmName:         string
+	#certSecretName: string
+	#jksSecretName:  string
+	apiVersion:      "apps/v1"
+	kind:            "Deployment"
+	metadata:        #config.metadata
 	spec: appsv1.#DeploymentSpec & {
 		replicas: #config.replicas
 		selector: matchLabels: #config.selector.labels
 		template: {
 			metadata: {
 				labels: #config.selector.labels
-				if #config.pod.annotations != _|_ {
-					annotations: #config.pod.annotations
+				if #config.podAnnotations != _|_ {
+					annotations: #config.podAnnotations
 				}
 			}
 			spec: corev1.#PodSpec & {
+				if #config.serviceAccountCreate {
+					serviceAccountName: *#config.serviceAccount.metadata.name | #config.metadata.name
+				}
+				if !#config.serviceAccountCreate {
+					serviceAccountName: *#config.serviceAccount.metadata.name | "default"
+				}
+
 				containers: [
 					{
 						name:            #config.metadata.name
+						command:         #config.command
 						image:           #config.image.reference
 						imagePullPolicy: #config.image.pullPolicy
+						env: [for k, v in #config.envs if v != _|_ && v.name == _|_ {
+							name:  "\( k )"
+							value: "\( v )"
+						},
+							for k, v in #config.envs if v != _|_ && v.name != _|_ {
+								name: "\( k )"
+								valueFrom:
+									secretKeyRef: {
+										name: "\( v.name )"
+										key:  "\( v.key )"
+									}}]
 						ports: [
 							{
 								name:          "http"
-								containerPort: 80
+								containerPort: *#config.envs.KC_HTTP_PORT | 8080
 								protocol:      "TCP"
 							},
+							if #config.service.https {
+								{
+									name:          "https"
+									containerPort: *#config.envs.KC_HTTPS_PORT | 8443
+									protocol:      "TCP"
+								}
+							},
+							if #config.cacheIspn {
+								{
+									name:          "jgroups"
+									containerPort: 7800
+									protocol:      "TCP"
+								}
+							},
 						]
-						readinessProbe: {
+						startupProbe: {
 							httpGet: {
-								path: "/"
-								port: "http"
+								path:   "/health"
+								port:   "http"
+								scheme: "HTTP"
 							}
-							initialDelaySeconds: 5
-							periodSeconds:       10
+							failureThreshold: 30
+							periodSeconds:    15
+							httpGet: {
+								path:   "/health"
+								port:   "http"
+								scheme: "HTTP"
+							}
 						}
 						livenessProbe: {
-							tcpSocket: {
-								port: "http"
+							successThreshold:    1
+							initialDelaySeconds: 30
+							periodSeconds:       30
+							timeoutSeconds:      10
+							failureThreshold:    3
+							httpGet: {
+								path:   "/health"
+								port:   "http"
+								scheme: "HTTP"
 							}
-							initialDelaySeconds: 5
-							periodSeconds:       5
 						}
-						if #config.resources != _|_ {
-							resources: #config.resources
+						readinessProbe: {
+							failureThreshold: 3
+							successThreshold: 1
+							timeoutSeconds:   10
+							periodSeconds:    15
+							httpGet: {
+								path:   "/health"
+								port:   "http"
+								scheme: "HTTP"
+							}
 						}
-						if #config.securityContext != _|_ {
-							securityContext: #config.securityContext
+						volumeMounts: [
+							if #config.cacheIspn {
+								{
+									mountPath: "/opt/keycloak/conf"
+									name:      "cache"
+								}
+							},
+							if #certSecretName != _|_ {
+								{
+									mountPath: "/certs"
+									name:      "certs"
+								}
+							},
+							if #jksSecretName != _|_ {
+								{
+									mountPath: "/jks"
+									name:      "jks"
+								}
+							},
+						]
+						resources:       #config.resources
+						securityContext: #config.securityContext
+					},
+				]
+				volumes: [
+					if #certSecretName != _|_ {
+						{
+							name: "certs"
+							secret: {
+								secretName: #certSecretName
+							}
+						}
+					},
+					if #jksSecretName != _|_ {
+						{
+							name: "jks"
+							secret: {
+								secretName: #jksSecretName
+							}
+						}
+					},
+					if #config.cacheIspn {
+						{
+							name: "cache"
+							configMap: {
+								name: #cmName
+								items: [{
+									key:  "cache-ispn.xml"
+									path: "cache-ispn.xml"
+								}]
+							}
 						}
 					},
 				]
-				if #config.pod.affinity != _|_ {
-					affinity: #config.pod.affinity
+				if #config.podSecurityContext != _|_ {
+					securityContext: #config.podSecurityContext
 				}
-				if #config.pod.imagePullSecrets != _|_ {
-					imagePullSecrets: #config.pod.imagePullSecrets
+				if #config.topologySpreadConstraints != _|_ {
+					topologySpreadConstraints: #config.topologySpreadConstraints
+				}
+				if #config.affinity != _|_ {
+					affinity: #config.affinity
+				}
+				if #config.tolerations != _|_ {
+					tolerations: #config.tolerations
+				}
+				if #config.imagePullSecrets != _|_ {
+					imagePullSecrets: #config.imagePullSecrets
 				}
 			}
 		}
