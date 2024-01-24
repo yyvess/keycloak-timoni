@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: test
+spec:
+  ports:
+  - appProtocol: http
+    name: http
+    port: 8080
+    protocol: TCP
+    targetPort: http
+  selector:
+    app.kubernetes.io/name: keycloak
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keycloak
+    spec:
+      containers:
+      - command:
+        - /opt/keycloak/bin/kc.sh
+        - start
+        env:
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KEYCLOAK_ADMIN
+          value: admin
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: admin
+        - name: KC_CACHE
+          value: local
+        - name: KC_CACHE_STACK
+          value: kubernetes
+        image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: keycloak
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          periodSeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          periodSeconds: 15
+        volumeMounts: []
+      serviceAccountName: default
+      volumes: []
+---
