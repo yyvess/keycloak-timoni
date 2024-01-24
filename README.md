@@ -4,22 +4,13 @@ A [timoni.sh](http://timoni.sh) module for deploying keycloak to Kubernetes clus
 
 ## Install
 
-To create an instance using the default values:
-
-```shell
-timoni -n default apply keycloak oci://<container-registry-url>
-```
-
-To change the [default configuration](#configuration),
-create one or more `values.cue` files and apply them to the instance.
-
-For example, create a file `my-values.cue` with the following content:
+To create an instance, create a file `my-values.cue` with the following content:
 
 ```cue
 values: {
-	resources: requests: {
-		cpu:    "100m"
-		memory: "128Mi"
+	envs: {
+		KEYCLOAK_ADMIN_PASSWORD: "admin"
+		KC_HOSTNAME_STRICT:       false
 	}
 }
 ```
@@ -27,7 +18,7 @@ values: {
 And apply the values with:
 
 ```shell
-timoni -n default apply keycloak oci://<container-registry-url> \
+timoni -n keycloak apply keycloak oci://ghcr.io/yyvess/keycloak \
 --values ./my-values.cue
 ```
 
@@ -36,7 +27,7 @@ timoni -n default apply keycloak oci://<container-registry-url> \
 To uninstall an instance and delete all its Kubernetes resources:
 
 ```shell
-timoni -n default delete keycloak
+timoni -n keycloak delete keycloak
 ```
 
 ## Configuration

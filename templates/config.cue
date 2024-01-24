@@ -1,9 +1,18 @@
 package templates
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	timoniv1 "timoni.sh/core/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	certv1 "cert-manager.io/certificate/v1"
+	issuerv1 "cert-manager.io/issuer/v1"
+	policyv1 "k8s.io/api/policy/v1"
+	netv1 "k8s.io/api/networking/v1"
 )
+
+#secretReference: {
+	name: string
+	key:  string
+}
 
 // Config defines the schema and defaults for the Instance values.
 #Config: {
@@ -38,33 +47,12 @@ import (
 
 	// The image allows setting the container image repository,
 	// tag, digest and pull policy.
-	image: timoniv1.#Image & {
-		repository: *"docker.io/nginx" | string
-		tag:        *"1-alpine" | string
-		digest:     *"" | string
-	}
-
-	// The pod allows setting the Kubernetes Pod annotations, image pull secrets,
-	// affinity and anti-affinity rules. By default, pods are scheduled on Linux nodes.
-	pod: {
-		annotations?: timoniv1.#Annotations
-
-		affinity: *{
-			nodeAffinity: requiredDuringSchedulingIgnoredDuringExecution: nodeSelectorTerms: [{
-				matchExpressions: [{
-					key:      corev1.#LabelOSStable
-					operator: "In"
-					values: ["linux"]
-				}]
-			}]
-		} | corev1.#Affinity
-
-		imagePullSecrets?: [...timoniv1.#ObjectReference]
-	}
+	// The default image repository and tag is set in `values.cue`.
+	image!: timoniv1.#Image
 
 	// The resources allows setting the container resource requirements.
 	// By default, the container requests 10m CPU and 32Mi memory.
-	resources: timoniv1.#ResourceRequirements & {
+	resources: timoniv1.#ResourceRequirements | *{
 		requests: {
 			cpu:    *"10m" | timoniv1.#CPUQuantity
 			memory: *"32Mi" | timoniv1.#MemoryQuantity
@@ -77,31 +65,187 @@ import (
 
 	// The securityContext allows setting the container security context.
 	// By default, the container is denined privilege escalation.
-	securityContext: corev1.#SecurityContext & {
+
+	securityContext: corev1.#SecurityContext | *{
 		allowPrivilegeEscalation: *false | true
-		privileged:               *false | true
 		capabilities:
 		{
 			drop: *["ALL"] | [string]
-			add: *["CHOWN", "NET_BIND_SERVICE", "SETGID", "SETUID"] | [string]
+		}
+		privileged:             *false | true
+		readOnlyRootFilesystem: *false | true
+		runAsNonRoot:           false | *true
+		seccompProfile: {
+			type: "RuntimeDefault"
 		}
 	}
 
 	// The service allows setting the Kubernetes Service annotations and port.
-	// By default, the HTTP port is 80.
+	// By default, the HTTP port is 8080.
 	service: {
 		annotations?: timoniv1.#Annotations
+		https:        true | *false
+		if https {
+			port: *8443 | int & >0 & <=65535
+		}
+		if !https {
+			port: *8080 | int & >0 & <=65535
+		}
+	}
 
-		port: *80 | int & >0 & <=65535
+	// Pod optional settings.
+	podAnnotations?: {[string]: string}
+	podSecurityContext?: corev1.#PodSecurityContext
+	imagePullSecrets?: [...timoniv1.ObjectReference]
+	tolerations?: [...corev1.#Toleration]
+	affinity?: corev1.#Affinity
+	topologySpreadConstraints?: [...corev1.#TopologySpreadConstraint]
+
+	// App settings.
+	command: [...string] | *["/opt/keycloak/bin/kc.sh", "start"]
+
+	serviceAccountCreate: *false | bool
+	serviceAccount:       corev1.#ServiceAccount
+
+	certificateCreate: *false | bool
+	// Web certificate
+	certificate: certv1.#CertificateSpec & {
+		dnsNames: *["localhost:\( service.port )"] | [...string]
+		issuerRef: name: *"\(metadata.name)" | string
+		secretName: "\(metadata.name)-cert"
+	}
+
+	jksCreate: *false | bool
+	// Requird to securize Jgroup in HA
+	jks: certv1.#CertificateSpec & {
+		commonName: *"infinispan-jks" | string
+		issuerRef: name: *"\(metadata.name)" | string
+		secretName: "\(metadata.name)-jks"
+	}
+
+	// Issuer used to generate certificate & jks
+	issuerCreate: *false | bool
+	issuer:       issuerv1.#IssuerSpec
+
+	pdbCreate: bool | *(replicas > 1)
+	pdbSpec: policyv1.#PodDisruptionBudgetSpec & {
+		minAvailable: *1 | int & >0 & <=65535
+	}
+
+	networkPolicyCreate: *false | bool
+	networkPolicyRules: [... netv1.#NetworkPolicyIngressRule]
+
+	// Setup distibuing cache for HA
+	cacheIspn: bool | *(replicas > 1)
+
+	envs: {
+		KC_DB?:                          "dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
+		KC_HEALTH_ENABLED:               true
+		KC_HTTP_ENABLED:                 *true | false
+		KC_HTTP_PORT?:                   int & >0 & <=65535
+		KC_HTTPS_PORT?:                  int & >0 & <=65535
+		KC_HOSTNAME_PORT?:               int & >0 & <=65535
+		KC_HOSTNAME?:                    string
+		KC_HOSTNAME_ADMIN?:              string
+		KC_HOSTNAME_URL?:                string
+		KC_HOSTNAME_ADMIN_URL?:          string
+		KC_HOSTNAME_PATH?:               string
+		KC_HOSTNAME_STRICT?:             true | false
+		KC_HOSTNAME_STRICT_HTTPS?:       true | false
+		KC_HOSTNAME_STRICT_BACKCHANNEL?: true | false
+		KC_PROXY?:                       "none" | "edge" | "reencrypt" | "passthrough"
+		KC_METRICS_ENABLED?:             true | false
+		KEYCLOAK_ADMIN:                  *"admin" | string | #secretReference
+		KEYCLOAK_ADMIN_PASSWORD:         string | #secretReference
+		KC_DB_URL?:                      string | #secretReference
+		KC_DB_USERNAME?:                 string | #secretReference
+		KC_DB_PASSWORD?:                 string | #secretReference
+		KC_CACHE?:                       "local" | "ispn"
+		KC_CACHE_CONFIG_FILE?:           string
+		KC_CACHE_STACK:                  *"kubernetes" | "tcp" | "udp" | "ec2" | "azure" | "google"
+		JAVA_OPTS_APPEND?:               string
+		KC_LOG_LEVEL?:                   string
+		KC_LOG_CONSOLE_OUTPUT?:          string
+		KC_LOG_CONSOLE_FORMAT?:          string
+		if certificateCreate {
+			KC_HTTPS_CERTIFICATE_FILE:     *"/certs/tls.crt" | string
+			KC_HTTPS_CERTIFICATE_KEY_FILE: *"/certs/tls.key" | string
+		}
+		if !certificateCreate {
+			KC_HTTPS_CERTIFICATE_FILE?:     string
+			KC_HTTPS_CERTIFICATE_KEY_FILE?: string
+		}
+
+	}
+
+	fileDb: false | *(envs.KC_DB == "dev-file" | envs.KC_DB == _|_)
+
+	jgroups: {
+		name: *"jgroups" | string
+		port: *7800 | int & >0 & <=65535
 	}
 }
 
 // Instance takes the config values and outputs the Kubernetes objects.
 #Instance: {
-	config: #Config
-
+	config: #Config & {
+		if config.cacheIspn {
+			envs: {
+				KC_CACHE_CONFIG_FILE: string | *"cache-ispn.xml"
+				KC_CACHE:             "local" | *"ispn"
+				JAVA_OPTS_APPEND:     *"-Djgroups.dns.query=\( config.metadata.name )-\( config.jgroups.name )" | string
+			}
+		}
+		if !config.cacheIspn {
+			envs: {
+				KC_CACHE: *"local" | "ispn"
+			}
+		}
+	}
 	objects: {
-		deploy: #Deployment & {#config: config}
-		service: #Service & {#config: config}
+		if config.serviceAccountCreate {
+			sa: #ServiceAccount & {#config: config}
+		}
+		if config.certificateCreate {
+			cert: #Certificate & {#config: config}
+		}
+		if config.jksCreate {
+			// Next version of certmanager the secret should optional and can be remove
+			// https://github.com/cert-manager/cert-manager/pull/6657#discussion_r1464958155
+			jksPassword: #JksSecret & {#config: config}
+			jks: #JKS & {
+				#config:     config
+				#secretName: jksPassword.metadata.name
+			}
+		}
+		if config.issuerCreate {
+			issuer: #Issuer & {#config: config}
+		}
+		svcHttp: #ServiceHttp & {#config: config}
+		if config.cacheIspn {
+			svcJgroup: #ServiceJgroup & {#config: config}
+			cm: #ConfigMapIspn & {#config: config}
+		}
+
+		if config.pdbCreate {
+			pdb: #PodDisruptionBudget & {#config: config}
+		}
+
+		if config.networkPolicyCreate {
+			networkPolicy: #NetworkPolicy & {
+				#config: config
+			}
+		}
+
+		deploy: #Deployment & {
+			#config: config
+			#cmName: *objects.cm.metadata.name | ""
+			if objects.cert.spec.secretName != _|_ {
+				#certSecretName: objects.cert.spec.secretName
+			}
+			if objects.jks.spec.secretName != _|_ {
+				#jksSecretName: objects.jks.spec.secretName
+			}
+		}
 	}
 }
