@@ -6,6 +6,6 @@ package main
 values: {
 	envs: {
 		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_HOSTNAME_STRICT:       false
+		KC_HOSTNAME_STRICT:      false
 	}
 }

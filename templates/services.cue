@@ -2,15 +2,17 @@ package templates
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	timoniv1 "timoni.sh/core/v1alpha1"
 )
 
 #Service: corev1.#Service & {
-	#config:    #Config
 	apiVersion: "v1"
 	kind:       "Service"
-	metadata: {
-		namespace: #config.metadata.namespace
-		labels:    #config.metadata.labels
+	#config:    #Config
+	#component: string
+	metadata: timoniv1.#MetaComponent & {
+		#Meta:      #config.metadata
+		#Component: #component
 		if #config.service.annotations != _|_ {
 			metadata: annotations: #config.service.annotations
 		}
@@ -22,39 +24,35 @@ import (
 }
 
 #ServiceHttp: #Service & {
-	#config: #Config
-	metadata: {
-		name: #config.metadata.name
-	}
+	#config:    #Config
+	#component: "web"
 	spec: {
 		ports: [
 			if !#config.service.https {
-			{
-				name:        "http"
-				appProtocol: "http"
-				port:        #config.service.port
-				protocol:    "TCP"
-				targetPort:  "http"
-			},
+				{
+					name:        "http"
+					appProtocol: "http"
+					port:        #config.service.port
+					protocol:    "TCP"
+					targetPort:  "http"
+				}
 			},
 			if #config.service.https {
-			{
-				name:        "https"
-				appProtocol: "https"
-				port:        #config.service.port
-				protocol:    "TCP"
-				targetPort:  "https"
-			}
-			}
+				{
+					name:        "https"
+					appProtocol: "https"
+					port:        #config.service.port
+					protocol:    "TCP"
+					targetPort:  "https"
+				}
+			},
 		]
 	}
 }
 
 #ServiceJgroup: #Service & {
-	#config: #Config
-	metadata: {
-		name: "\( #config.metadata.name )-\( #config.jgroups.name )"
-	}
+	#config:    #Config
+	#component: "jgroup"
 	spec: {
 		ports: [
 			{

@@ -1,62 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: test
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: timoni
-    app.kubernetes.io/name: keycloak
-    app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak
-  namespace: test
-spec:
-  dnsNames:
-  - localhost:8080
-  issuerRef:
-    group: cert-manager.io
-    kind: Issuer
-    name: existingIssuer
-  secretName: keycloak-cert
----
-apiVersion: v1
-immutable: true
-kind: Secret
-metadata:
-  labels:
-    app.kubernetes.io/managed-by: timoni
-    app.kubernetes.io/name: keycloak-jks-pwd
-    app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jks-pwd-86dfda33
-  namespace: test
-stringData:
-  password-jks: changeme
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  labels:
-    app.kubernetes.io/component: jks
-    app.kubernetes.io/managed-by: timoni
-    app.kubernetes.io/name: keycloak
-    app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jks
-  namespace: test
-spec:
-  commonName: infinispan-jks
-  issuerRef:
-    group: cert-manager.io
-    kind: Issuer
-    name: existingIssuer
-  keystores:
-    jks:
-      create: true
-      passwordSecretRef:
-        key: password-jks
-        name: keycloak-jks-pwd-86dfda33
-  secretName: keycloak-jks
+  name: zel-test
 ---
 apiVersion: v1
 kind: Service
@@ -67,7 +12,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak-web
-  namespace: test
+  namespace: zel-test
 spec:
   ports:
   - appProtocol: http
@@ -79,6 +24,33 @@ spec:
     app.kubernetes.io/name: keycloak
   type: ClusterIP
 ---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: zel-test
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: auth.localtest.me
+    http:
+      paths:
+      - backend:
+          service:
+            name: keycloak-web
+            port:
+              number: 8080
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - fake
+    secretName: auth-tls-secret
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -87,7 +59,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak
-  namespace: test
+  namespace: zel-test
 spec:
   replicas: 1
   selector:
@@ -109,22 +81,18 @@ spec:
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_PROXY
+          value: edge
+        - name: KEYCLOAK_ADMIN
+          value: admin
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: admin
         - name: KC_CACHE_STACK
           value: kubernetes
-        - name: KC_HTTPS_CERTIFICATE_FILE
-          value: /certs/tls.crt
-        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
-          value: /certs/tls.key
-        - name: KEYCLOAK_ADMIN
-          valueFrom:
-            secretKeyRef:
-              key: keycloak-admin-user
-              name: existing-secret
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: keycloak-admin-password
-              name: existing-secret
+        - name: KC_LOG_LEVEL
+          value: DEBUG
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -172,17 +140,7 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 15
-        volumeMounts:
-        - mountPath: /certs
-          name: certs
-        - mountPath: /jks
-          name: jks
-      serviceAccountName: existing-sa
-      volumes:
-      - name: certs
-        secret:
-          secretName: keycloak-cert
-      - name: jks
-        secret:
-          secretName: keycloak-jks
+        volumeMounts: []
+      serviceAccountName: default
+      volumes: []
 ---
