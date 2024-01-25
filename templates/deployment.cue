@@ -61,7 +61,7 @@ import (
 									protocol:      "TCP"
 								}
 							},
-							if #config.cacheIspn {
+							if #config.ha {
 								{
 									name:          "jgroups"
 									containerPort: 7800
@@ -75,20 +75,9 @@ import (
 								port:   "http"
 								scheme: "HTTP"
 							}
-							failureThreshold: 30
-							periodSeconds:    15
-							httpGet: {
-								path:   "/health"
-								port:   "http"
-								scheme: "HTTP"
-							}
-						}
-						livenessProbe: {
-							successThreshold:    1
 							initialDelaySeconds: 30
-							periodSeconds:       30
-							timeoutSeconds:      10
-							failureThreshold:    3
+							failureThreshold:    30
+							periodSeconds:       15
 							httpGet: {
 								path:   "/health"
 								port:   "http"
@@ -96,10 +85,21 @@ import (
 							}
 						}
 						readinessProbe: {
-							failureThreshold: 3
-							successThreshold: 1
 							timeoutSeconds:   10
 							periodSeconds:    15
+							successThreshold: 1
+							failureThreshold: 3
+							httpGet: {
+								path:   "/health"
+								port:   "http"
+								scheme: "HTTP"
+							}
+						}
+						livenessProbe: {
+							periodSeconds:    30
+							timeoutSeconds:   10
+							successThreshold: 1
+							failureThreshold: 3
 							httpGet: {
 								path:   "/health"
 								port:   "http"
@@ -107,7 +107,7 @@ import (
 							}
 						}
 						volumeMounts: [
-							if #config.cacheIspn {
+							if #config.ha {
 								{
 									mountPath: "/opt/keycloak/conf"
 									name:      "cache"
@@ -147,7 +147,7 @@ import (
 							}
 						}
 					},
-					if #config.cacheIspn {
+					if #config.ha {
 						{
 							name: "cache"
 							configMap: {

@@ -19,7 +19,19 @@ import (
 			for v in #config.networkPolicyRules {
 				v
 			},
-			if #config.cacheIspn {
+			// Allow all pod in the same namespance
+			{
+				from: [{
+					podSelector: {}
+				},
+				]
+				ports: [{
+					protocol: "TCP"
+					port:     #config.service.port
+				},
+				]},
+			// Allow Keycloak Jgroup
+			if #config.ha {
 				{
 					from: [{
 						podSelector: {

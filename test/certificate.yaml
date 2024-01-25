@@ -1,8 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -31,8 +34,6 @@ apiVersion: v1
 immutable: true
 kind: Secret
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak-jks-pwd
@@ -46,6 +47,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   labels:
+    app.kubernetes.io/component: jks
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
@@ -68,8 +70,6 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -83,10 +83,11 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app.kubernetes.io/component: web
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak
+  name: keycloak-web
   namespace: test
 spec:
   ports:
@@ -103,10 +104,11 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app.kubernetes.io/component: jgroup
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jgroups
+  name: keycloak-jgroup
   namespace: test
 spec:
   ports:
@@ -165,8 +167,6 @@ data:
 immutable: true
 kind: ConfigMap
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -177,8 +177,6 @@ metadata:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -194,8 +192,6 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -204,6 +200,11 @@ metadata:
   namespace: test
 spec:
   ingress:
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 8443
+      protocol: TCP
   - from:
     - podSelector:
         matchLabels:
@@ -220,8 +221,6 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    custom_annotation: sleep
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
@@ -243,14 +242,18 @@ spec:
         - /opt/keycloak/bin/kc.sh
         - start
         env:
+        - name: KC_DB
+          value: postgres
+        - name: KC_CACHE
+          value: ispn
+        - name: JAVA_OPTS_APPEND
+          value: -Djgroups.dns.query=keycloak-jgroups
+        - name: KC_CACHE_CONFIG_FILE
+          value: cache-ispn.xml
         - name: KC_HEALTH_ENABLED
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
-        - name: KC_HOSTNAME_STRICT
-          value: "false"
-        - name: KC_HOSTNAME_STRICT_HTTPS
-          value: "false"
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
@@ -259,16 +262,8 @@ spec:
           value: admin
         - name: KC_DB_PASSWORD
           value: admin
-        - name: KC_CACHE
-          value: ispn
-        - name: KC_CACHE_CONFIG_FILE
-          value: cache-ispn.xml
         - name: KC_CACHE_STACK
           value: kubernetes
-        - name: JAVA_OPTS_APPEND
-          value: -Djgroups.dns.query=keycloak-jgroups
-        - name: KC_LOG_LEVEL
-          value: DEBUG
         - name: KC_HTTPS_CERTIFICATE_FILE
           value: /certs/tls.crt
         - name: KC_HTTPS_CERTIFICATE_KEY_FILE
@@ -281,7 +276,6 @@ spec:
             path: /health
             port: http
             scheme: HTTP
-          initialDelaySeconds: 30
           periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 10
@@ -307,8 +301,8 @@ spec:
           timeoutSeconds: 10
         resources:
           requests:
-            cpu: 10m
-            memory: 32Mi
+            cpu: 200m
+            memory: 768Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -325,6 +319,7 @@ spec:
             path: /health
             port: http
             scheme: HTTP
+          initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
         - mountPath: /opt/keycloak/conf

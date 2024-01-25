@@ -11,13 +11,13 @@ values: {
 
 	replicas: 4
 
-	pdbSpec: {
-		minAvailable: 2
+	pdb: {
+		minAvailable:   2
 		maxUnavailable: 1
 	}
 
 	envs: {
-		KEYCLOAK_ADMIN:          "admin"
 		KEYCLOAK_ADMIN_PASSWORD: "admin"
+		KC_DB:                    "postgres"
 	}
 }

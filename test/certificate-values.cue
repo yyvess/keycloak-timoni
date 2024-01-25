@@ -14,17 +14,11 @@ values: {
 		tag:        "23.0"
 	}
 
-	metadata: {
-		annotations: {
-			custom_annotation: "sleep"
-		}
-	}
-
 	service: https: true
 
-	issuerCreate: true
-	jksCreate: true
-	certificateCreate: true
+	issuerCreate:        true
+	jksCreate:           true
+	certificateCreate:   true
 	networkPolicyCreate: true
 
 	issuer: {
@@ -43,12 +37,9 @@ values: {
 	}
 
 	envs: {
-		KEYCLOAK_ADMIN:           "admin"
 		KEYCLOAK_ADMIN_PASSWORD:  "admin"
+		KC_DB:                    "postgres"
 		KC_DB_USERNAME:           "admin"
 		KC_DB_PASSWORD:           "admin"
-		KC_HOSTNAME_STRICT:       false
-		KC_HOSTNAME_STRICT_HTTPS: false
-		KC_LOG_LEVEL:             "DEBUG"
 	}
 }
