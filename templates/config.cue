@@ -7,6 +7,7 @@ import (
 	issuerv1 "cert-manager.io/issuer/v1"
 	policyv1 "k8s.io/api/policy/v1"
 	netv1 "k8s.io/api/networking/v1"
+	vsv1beta1 "networking.istio.io/virtualservice/v1beta1"
 )
 
 #secretReference: {
@@ -54,8 +55,8 @@ import (
 	// By default, the container requests 10m CPU and 32Mi memory.
 	resources: timoniv1.#ResourceRequirements | *{
 		requests: {
-			cpu:    *"10m" | timoniv1.#CPUQuantity
-			memory: *"32Mi" | timoniv1.#MemoryQuantity
+			cpu:    *"200m" | timoniv1.#CPUQuantity
+			memory: *"768Mi" | timoniv1.#MemoryQuantity
 		}
 	}
 
@@ -104,6 +105,8 @@ import (
 	// App settings.
 	command: [...string] | *["/opt/keycloak/bin/kc.sh", "start"]
 
+	ha: replicas > 1
+
 	serviceAccountCreate: *false | bool
 	serviceAccount:       corev1.#ServiceAccount
 
@@ -127,19 +130,38 @@ import (
 	issuerCreate: *false | bool
 	issuer:       issuerv1.#IssuerSpec
 
-	pdbCreate: bool | *(replicas > 1)
-	pdbSpec: policyv1.#PodDisruptionBudgetSpec & {
+	pdbCreate: bool | *ha
+	pdb: policyv1.#PodDisruptionBudgetSpec & {
 		minAvailable: *1 | int & >0 & <=65535
 	}
 
 	networkPolicyCreate: *false | bool
 	networkPolicyRules: [... netv1.#NetworkPolicyIngressRule]
 
-	// Setup distibuing cache for HA
-	cacheIspn: bool | *(replicas > 1)
+	virtualService?: vsv1beta1.#VirtualServiceSpec
+
+	ingress?: netv1.#IngressSpec
+
+
+	fileDb: false | *(envs.KC_DB == "dev-file" | envs.KC_DB == _|_)
+
+	jgroups: {
+		name: *"jgroups" | string
+		port: *7800 | int & >0 & <=65535
+	}
 
 	envs: {
-		KC_DB?:                          "dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
+		if !ha {
+			KC_DB?:            "dev-mem" | "dev-file" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
+			KC_CACHE:          "local"
+			JAVA_OPTS_APPEND?: string
+		}
+		if ha {
+			KC_DB!:               "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
+			KC_CACHE:             "ispn"
+			KC_CACHE_CONFIG_FILE: "cache-ispn.xml"
+			JAVA_OPTS_APPEND:     *"-Djgroups.dns.query=\( metadata.name )-\( jgroups.name )" | string
+		}
 		KC_HEALTH_ENABLED:               true
 		KC_HTTP_ENABLED:                 *true | false
 		KC_HTTP_PORT?:                   int & >0 & <=65535
@@ -160,10 +182,7 @@ import (
 		KC_DB_URL?:                      string | #secretReference
 		KC_DB_USERNAME?:                 string | #secretReference
 		KC_DB_PASSWORD?:                 string | #secretReference
-		KC_CACHE?:                       "local" | "ispn"
-		KC_CACHE_CONFIG_FILE?:           string
 		KC_CACHE_STACK:                  *"kubernetes" | "tcp" | "udp" | "ec2" | "azure" | "google"
-		JAVA_OPTS_APPEND?:               string
 		KC_LOG_LEVEL?:                   string
 		KC_LOG_CONSOLE_OUTPUT?:          string
 		KC_LOG_CONSOLE_FORMAT?:          string
@@ -174,78 +193,6 @@ import (
 		if !certificateCreate {
 			KC_HTTPS_CERTIFICATE_FILE?:     string
 			KC_HTTPS_CERTIFICATE_KEY_FILE?: string
-		}
-
-	}
-
-	fileDb: false | *(envs.KC_DB == "dev-file" | envs.KC_DB == _|_)
-
-	jgroups: {
-		name: *"jgroups" | string
-		port: *7800 | int & >0 & <=65535
-	}
-}
-
-// Instance takes the config values and outputs the Kubernetes objects.
-#Instance: {
-	config: #Config & {
-		if config.cacheIspn {
-			envs: {
-				KC_CACHE_CONFIG_FILE: string | *"cache-ispn.xml"
-				KC_CACHE:             "local" | *"ispn"
-				JAVA_OPTS_APPEND:     *"-Djgroups.dns.query=\( config.metadata.name )-\( config.jgroups.name )" | string
-			}
-		}
-		if !config.cacheIspn {
-			envs: {
-				KC_CACHE: *"local" | "ispn"
-			}
-		}
-	}
-	objects: {
-		if config.serviceAccountCreate {
-			sa: #ServiceAccount & {#config: config}
-		}
-		if config.certificateCreate {
-			cert: #Certificate & {#config: config}
-		}
-		if config.jksCreate {
-			// Next version of certmanager the secret should optional and can be remove
-			// https://github.com/cert-manager/cert-manager/pull/6657#discussion_r1464958155
-			jksPassword: #JksSecret & {#config: config}
-			jks: #JKS & {
-				#config:     config
-				#secretName: jksPassword.metadata.name
-			}
-		}
-		if config.issuerCreate {
-			issuer: #Issuer & {#config: config}
-		}
-		svcHttp: #ServiceHttp & {#config: config}
-		if config.cacheIspn {
-			svcJgroup: #ServiceJgroup & {#config: config}
-			cm: #ConfigMapIspn & {#config: config}
-		}
-
-		if config.pdbCreate {
-			pdb: #PodDisruptionBudget & {#config: config}
-		}
-
-		if config.networkPolicyCreate {
-			networkPolicy: #NetworkPolicy & {
-				#config: config
-			}
-		}
-
-		deploy: #Deployment & {
-			#config: config
-			#cmName: *objects.cm.metadata.name | ""
-			if objects.cert.spec.secretName != _|_ {
-				#certSecretName: objects.cert.spec.secretName
-			}
-			if objects.jks.spec.secretName != _|_ {
-				#jksSecretName: objects.jks.spec.secretName
-			}
 		}
 	}
 }

@@ -25,11 +25,11 @@ values: {
 	envs: {
 		KEYCLOAK_ADMIN: {
 			name: "existing-secret"
-			key: "keycloak-admin-user"
+			key:  "keycloak-admin-user"
 		}
 		KEYCLOAK_ADMIN_PASSWORD: {
 			name: "existing-secret"
-			key: "keycloak-admin-password"
+			key:  "keycloak-admin-password"
 		}
 	}
 }

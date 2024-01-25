@@ -7,7 +7,6 @@ values: {
 	envs: {
 		KEYCLOAK_ADMIN_PASSWORD: "admin"
 	}
-	cacheIspn:           true
 	networkPolicyCreate: true
 	networkPolicyRules: [{
 		from: [{

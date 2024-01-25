@@ -9,8 +9,7 @@ import (
 	kind:       "PodDisruptionBudget"
 	#config:    #Config
 	metadata:   #config.metadata
-	spec: #config.pdbSpec & {
-
+	spec: #config.pdb & {
 		selector: {
 			matchLabels: {
 				#config.selector.labels

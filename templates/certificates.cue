@@ -18,8 +18,8 @@ import (
 }
 
 #JksSecret: timoniv1.#ImmutableConfig & {
-	#config:     #Config
-	#Kind: timoniv1.#SecretKind
+	#config: #Config
+	#Kind:   timoniv1.#SecretKind
 	#Meta: {
 		name:        "\(#config.metadata.name)-jks-pwd"
 		#Version:    #config.moduleVersion
@@ -34,10 +34,9 @@ import (
 #JKS: v1.#Certificate & {
 	#config:     #Config
 	#secretName: string
-	metadata: {
-		name:      "\(#config.metadata.name)-jks"
-		namespace: #config.metadata.namespace
-		labels:    #config.metadata.labels
+	metadata: timoniv1.#MetaComponent & {
+		#Meta:      #config.metadata
+		#Component: "jks"
 	}
 	spec: #config.jks & {
 		issuerRef: {

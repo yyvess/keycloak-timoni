@@ -14,16 +14,12 @@ values: {
 		digest:     "sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a"
 		tag:        "23.0"
 	}
-	metadata: {
-		annotations: {
-			root: "root"
-		}
-	}
-
 
 	serviceAccountCreate: true
 	serviceAccount: {
-		metadata: name: "kjj"
+		metadata: {
+			name: "kjj"
+			annotations: {"custom": "test"}}
 	}
 
 	envs: {

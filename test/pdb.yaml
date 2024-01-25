@@ -1,11 +1,17 @@
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: test
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app.kubernetes.io/component: web
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak
+  name: keycloak-web
   namespace: test
 spec:
   ports:
@@ -22,10 +28,11 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
+    app.kubernetes.io/component: jgroup
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jgroups
+  name: keycloak-jgroup
   namespace: test
 spec:
   ports:
@@ -176,6 +183,14 @@ spec:
         - /opt/keycloak/bin/kc.sh
         - start
         env:
+        - name: KC_DB
+          value: postgres
+        - name: KC_CACHE
+          value: ispn
+        - name: JAVA_OPTS_APPEND
+          value: -Djgroups.dns.query=keycloak-jgroups
+        - name: KC_CACHE_CONFIG_FILE
+          value: cache-ispn.xml
         - name: KC_HEALTH_ENABLED
           value: "true"
         - name: KC_HTTP_ENABLED
@@ -184,14 +199,8 @@ spec:
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
-        - name: KC_CACHE
-          value: ispn
-        - name: KC_CACHE_CONFIG_FILE
-          value: cache-ispn.xml
         - name: KC_CACHE_STACK
           value: kubernetes
-        - name: JAVA_OPTS_APPEND
-          value: -Djgroups.dns.query=keycloak-jgroups
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -200,7 +209,6 @@ spec:
             path: /health
             port: http
             scheme: HTTP
-          initialDelaySeconds: 30
           periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 10
@@ -223,8 +231,8 @@ spec:
           timeoutSeconds: 10
         resources:
           requests:
-            cpu: 10m
-            memory: 32Mi
+            cpu: 200m
+            memory: 768Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -241,6 +249,7 @@ spec:
             path: /health
             port: http
             scheme: HTTP
+          initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
         - mountPath: /opt/keycloak/conf

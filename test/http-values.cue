@@ -15,12 +15,6 @@ values: {
 		tag:        "23.0"
 	}
 
-	metadata: {
-		annotations: {
-			custom_annotation: "sleep"
-		}
-	}
-
 	envs: {
 		KEYCLOAK_ADMIN:           "admin"
 		KEYCLOAK_ADMIN_PASSWORD:  "admin"
@@ -30,6 +24,7 @@ values: {
 		KC_HOSTNAME_URL:          "http://localhost:8080/"
 		KC_HOSTNAME_STRICT:       false
 		KC_HOSTNAME_STRICT_HTTPS: false
-		KC_LOG_LEVEL:             "DEBUG"
+
+		KC_LOG_LEVEL: "DEBUG"
 	}
 }
