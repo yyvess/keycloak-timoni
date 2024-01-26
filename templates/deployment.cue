@@ -6,13 +6,15 @@ import (
 )
 
 #Deployment: appsv1.#Deployment & {
-	#config:         #Config
+	#config: #Config
+	#envs: [...corev1.#EnvVar]
 	#cmName:         string
 	#certSecretName: string
 	#jksSecretName:  string
 	apiVersion:      "apps/v1"
 	kind:            "Deployment"
 	metadata:        #config.metadata
+
 	spec: appsv1.#DeploymentSpec & {
 		replicas: #config.replicas
 		selector: matchLabels: #config.selector.labels
@@ -30,24 +32,18 @@ import (
 				if !#config.serviceAccountCreate {
 					serviceAccountName: *#config.serviceAccount.metadata.name | "default"
 				}
-
 				containers: [
 					{
 						name:            #config.metadata.name
 						command:         #config.command
 						image:           #config.image.reference
 						imagePullPolicy: #config.image.pullPolicy
-						env: [for k, v in #config.envs if v != _|_ && v.name == _|_ {
-							name:  "\( k )"
-							value: "\( v )"
-						},
-							for k, v in #config.envs if v != _|_ && v.name != _|_ {
-								name: "\( k )"
-								valueFrom:
-									secretKeyRef: {
-										name: "\( v.name )"
-										key:  "\( v.key )"
-									}}]
+						env: [
+							{name: "KC_HEALTH_ENABLED", value: "true"},
+							{name: "KC_HTTP_ENABLED", value:   "true"},
+							for x in #envs {x},
+							for x in #config.extraEnvs {x},
+						]
 						ports: [
 							{
 								name:          "http"

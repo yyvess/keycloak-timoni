@@ -8,11 +8,6 @@ package main
 values: {
 
 	replicas: 2
-	image: {
-		repository: "quay.io/keycloak/keycloak"
-		digest:     "sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a"
-		tag:        "23.0"
-	}
 
 	service: https: true
 
@@ -36,10 +31,22 @@ values: {
 		}
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD:  "admin"
-		KC_DB:                    "postgres"
-		KC_DB_USERNAME:           "admin"
-		KC_DB_PASSWORD:           "admin"
+	admin: {
+		password: {value: "admin"}
 	}
+
+	database: {
+		type: {value: "postgres"}
+		url: {value: "jdbc:postgresql://localhost/keycloak"}
+		username: {value: "keycloak"}
+		password: {
+			valueFrom: {
+				secretKeyRef: {
+					name: "my-secret"
+					key:  "my-key"
+				}
+			}
+		}
+	}
+
 }

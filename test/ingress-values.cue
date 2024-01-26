@@ -9,12 +9,6 @@ package main
 // Defaults
 values: {
 
-	image: {
-		repository: "quay.io/keycloak/keycloak"
-		digest:     "sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a"
-		tag:        "23.0"
-	}
-
 	ingress: {
 		ingressClassName: "nginx"
 		tls: [{
@@ -39,10 +33,8 @@ values: {
 			}}]
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_PROXY:                "edge"
-		KC_HOSTNAME_STRICT:      false
-		KC_LOG_LEVEL:            "DEBUG"
+	admin: {
+		password: {value: "admin"}
 	}
+
 }

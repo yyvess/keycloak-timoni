@@ -22,14 +22,7 @@ values: {
 		metadata: name: "existing-sa"
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN: {
-			name: "existing-secret"
-			key:  "keycloak-admin-user"
-		}
-		KEYCLOAK_ADMIN_PASSWORD: {
-			name: "existing-secret"
-			key:  "keycloak-admin-password"
-		}
+	admin: {
+		password: {value: "admin"}
 	}
 }

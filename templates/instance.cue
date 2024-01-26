@@ -62,6 +62,54 @@ package templates
 			if objects.jks.spec.secretName != _|_ {
 				#jksSecretName: objects.jks.spec.secretName
 			}
+
+			#javaOpts?: string
+			if config.ha && config.java.options == _|_ {
+				#javaOpts: "-Djgroups.dns.query=\( config.metadata.name )-\( config.cache.jgroups.name )"
+			}
+			if config.ha && config.java.options != _|_ {
+				#javaOpts: "\( config.java.options ) -Djgroups.dns.query=\( config.metadata.name )-\( config.cache.jgroups.name )"
+			}
+			if !config.ha && config.java.options != _|_ {
+				#javaOpts: config.java.options
+			}
+			#envs: [
+				if config.database.type != _|_ {
+					{name: "KC_DB"} & config.database.type
+				},
+				if !config.ha {
+					{name: "KC_CACHE", value: "local"}
+				},
+				if config.ha == true {
+					{name: "KC_CACHE", value: "ispn"}
+				},
+				if config.ha == true {
+					{name: "KC_CACHE_STACK", value: config.cache.stack}
+				},
+				if config.ha == true {
+					{name: "KC_CACHE_CONFIG_FILE", value: "cache-ispn.xml"}
+				},
+				if #javaOpts != _|_ {
+					{name: "JAVA_OPTS_APPEND", value: #javaOpts}
+				},
+				if config.certificateCreate {
+					{name: "KC_HTTPS_CERTIFICATE_FILE", value: "/certs/tls.crt"}
+				},
+				if config.certificateCreate {
+					{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}
+				},
+				{name: "KEYCLOAK_ADMIN"} & config.admin.user,
+				{name: "KEYCLOAK_ADMIN_PASSWORD"} & config.admin.password,
+				if config.database.url != _|_ {
+					{name: "KC_DB_URL"} & config.database.url
+				},
+				if (config.database.username != _|_) {
+					{name: "KC_DB_USERNAME"} & {config.database.username}
+				},
+				if (config.database.password != _|_) {
+					{name: "KC_DB_PASSWORD"} & {config.database.password}
+				},
+			]
 		}
 	}
 }
