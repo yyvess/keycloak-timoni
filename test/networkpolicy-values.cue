@@ -4,9 +4,6 @@ package main
 
 // Defaults
 values: {
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-	}
 	networkPolicyCreate: true
 	networkPolicyRules: [{
 		from: [{
@@ -24,4 +21,9 @@ values: {
 		]
 	},
 	]
+
+	admin: {
+		password: {value: "admin"}
+	}
+
 }

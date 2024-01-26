@@ -242,32 +242,37 @@ spec:
         - /opt/keycloak/bin/kc.sh
         - start
         env:
-        - name: KC_DB
-          value: postgres
-        - name: KC_CACHE
-          value: ispn
-        - name: JAVA_OPTS_APPEND
-          value: -Djgroups.dns.query=keycloak-jgroups
-        - name: KC_CACHE_CONFIG_FILE
-          value: cache-ispn.xml
         - name: KC_HEALTH_ENABLED
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
-        - name: KEYCLOAK_ADMIN
-          value: admin
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          value: admin
-        - name: KC_DB_USERNAME
-          value: admin
-        - name: KC_DB_PASSWORD
-          value: admin
+        - name: KC_DB
+          value: postgres
+        - name: KC_CACHE
+          value: ispn
         - name: KC_CACHE_STACK
           value: kubernetes
+        - name: KC_CACHE_CONFIG_FILE
+          value: cache-ispn.xml
+        - name: JAVA_OPTS_APPEND
+          value: -Djgroups.dns.query=keycloak-jgroups
         - name: KC_HTTPS_CERTIFICATE_FILE
           value: /certs/tls.crt
         - name: KC_HTTPS_CERTIFICATE_KEY_FILE
           value: /certs/tls.key
+        - name: KEYCLOAK_ADMIN
+          value: admin
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: admin
+        - name: KC_DB_URL
+          value: jdbc:postgresql://localhost/keycloak
+        - name: KC_DB_USERNAME
+          value: keycloak
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: my-key
+              name: my-secret
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:

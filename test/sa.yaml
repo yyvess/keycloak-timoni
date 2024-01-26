@@ -12,7 +12,7 @@ metadata:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: kjj
+  name: custom-sa
   namespace: test
 ---
 apiVersion: v1
@@ -60,32 +60,16 @@ spec:
         - /opt/keycloak/bin/kc.sh
         - start
         env:
-        - name: KC_CACHE
-          value: local
         - name: KC_HEALTH_ENABLED
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
-        - name: KC_HOSTNAME_PORT
-          value: "8080"
-        - name: KC_HOSTNAME_URL
-          value: http://localhost:8080/
-        - name: KC_HOSTNAME_STRICT
-          value: "false"
-        - name: KC_HOSTNAME_STRICT_HTTPS
-          value: "false"
+        - name: KC_CACHE
+          value: local
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
-        - name: KC_DB_USERNAME
-          value: admin
-        - name: KC_DB_PASSWORD
-          value: admin
-        - name: KC_CACHE_STACK
-          value: kubernetes
-        - name: KC_LOG_LEVEL
-          value: DEBUG
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -134,6 +118,6 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts: []
-      serviceAccountName: kjj
+      serviceAccountName: custom-sa
       volumes: []
 ---

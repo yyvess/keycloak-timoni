@@ -1,7 +1,7 @@
 name: Release and sign module
 on:
     push:
-        tag: ['*'] # semver format
+        tags: ['*'] # semver format
 
 permissions:
     contents: read # needed for checkout
@@ -35,5 +35,5 @@ jobs:
                     --sign=cosign \
                     --latest  \
                     -a 'org.opencontainers.image.licenses=Apache-2.0' \
-                    -a 'org.opencontainers.image.source=https://github.com/yyvess/keycloak-timoni' \
-                    -a 'org.opencontainers.image.description=A Keycloakh module.' \
+                    -a 'org.opencontainers.image.source=https://github.com/${{ github.repository }}' \
+                    -a 'org.opencontainers.image.description=A Keycloak module.' \

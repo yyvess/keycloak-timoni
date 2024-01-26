@@ -57,7 +57,7 @@ import (
 		ports: [
 			{
 				name:       "jgroups"
-				port:       #config.jgroups.port
+				port:       #config.cache.jgroups.port
 				protocol:   "TCP"
 				targetPort: "jgroups"
 			},
