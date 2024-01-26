@@ -52,14 +52,17 @@ import (
 
 #ServiceJgroup: #Service & {
 	#config:    #Config
-	#component: "jgroup"
+	#component: "jgroups"
 	spec: {
+		clusterIP: "None"
+		publishNotReadyAddresses: true
 		ports: [
 			{
 				name:       "jgroups"
 				port:       #config.cache.jgroups.port
 				protocol:   "TCP"
 				targetPort: "jgroups"
+				appProtocol: "tcp"
 			},
 		]
 	}
