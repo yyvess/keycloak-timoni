@@ -104,18 +104,21 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app.kubernetes.io/component: jgroup
+    app.kubernetes.io/component: jgroups
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jgroup
+  name: keycloak-jgroups
   namespace: test
 spec:
+  clusterIP: None
   ports:
-  - name: jgroups
+  - appProtocol: tcp
+    name: jgroups
     port: 7800
     protocol: TCP
     targetPort: jgroups
+  publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: keycloak
   type: ClusterIP

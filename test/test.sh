@@ -13,8 +13,9 @@ echo "pdb-values"
 timoni -n test build keycloak  ../ --values ../values.cue --values ./pdb-values.cue > ./pdb.yaml
 echo "network-policy-values"
 timoni -n test build keycloak  ../ --values ../values.cue --values ./networkpolicy-values.cue > ./networkpolicy.yaml
-
 echo "ingress-values"
 timoni -n zel-test build keycloak  ../ --values ../values.cue --values ./ingress-values.cue > ./ingress.yaml
 echo "virtual-service-values"
 timoni -n zel-test build keycloak  ../ --values ../values.cue --values ./virtualservice-values.cue > ./virtualservice.yaml
+echo "production-istio-values"
+timoni -n zel-test build keycloak  ../ --values ../values.cue --values ./production-istio-values.cue > ./production-istio.yaml

@@ -1,7 +1,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: test
+  labels:
+    istio-injection: enabled
+  name: zel-test
 ---
 apiVersion: v1
 kind: Service
@@ -12,7 +14,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak-web
-  namespace: test
+  namespace: zel-test
 spec:
   ports:
   - appProtocol: http
@@ -33,7 +35,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak-jgroups
-  namespace: test
+  namespace: zel-test
 spec:
   clusterIP: None
   ports:
@@ -144,7 +146,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak-9c00292b
-  namespace: test
+  namespace: zel-test
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -154,13 +156,82 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak
-  namespace: test
+  namespace: zel-test
 spec:
-  maxUnavailable: 1
-  minAvailable: 2
+  minAvailable: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: zel-test
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+      podSelector:
+        matchLabels:
+          app: istio-ingressgateway
+    ports:
+    - port: 8080
+      protocol: TCP
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 8080
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: keycloak
+    ports:
+    - port: 7800
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: zel-test
+spec:
+  gateways:
+  - istio-system/istio-ingressgateway
+  hosts:
+  - keycloak.myorgs.com
+  http:
+  - directResponse:
+      status: 403
+    match:
+    - uri:
+        prefix: /health
+    - uri:
+        prefix: /metrics
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: keycloak-web
+        port:
+          number: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -170,9 +241,9 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak
-  namespace: test
+  namespace: zel-test
 spec:
-  replicas: 4
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
@@ -199,11 +270,29 @@ spec:
         - name: KC_CACHE_CONFIG_FILE
           value: cache-ispn.xml
         - name: JAVA_OPTS_APPEND
-          value: -Xms256m -Djgroups.dns.query=keycloak-jgroups
+          value: -Djgroups.dns.query=keycloak-jgroups
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
-          value: admin
+          value: FIXME-USE-SECRET
+        - name: KC_DB_URL
+          value: jdbc:postgresql://keycloak.postgres.svc.cluster.local/keycloakdb?sslmode=require
+        - name: KC_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: username
+              name: keycloakdb.credentials
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: keycloakdb.credentials
+        - name: KC_PROXY
+          value: edge
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_LOG_LEVEL
+          value: INFO
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:
