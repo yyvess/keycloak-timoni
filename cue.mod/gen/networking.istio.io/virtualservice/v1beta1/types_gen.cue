@@ -307,12 +307,14 @@ import "strings"
 			// style regex-based match
 			// (https://github.com/google/re2/wiki/Syntax).
 			uri?: ({} | {
-				exact: string
+				exact: _
 			} | {
-				prefix: string
+				prefix: _
 			} | {
-				regex: string
-			})
+				regex: _
+			}) | {
+				prefix?: string
+			}
 
 			// withoutHeader has the same syntax with the header, but has
 			// opposite meaning.

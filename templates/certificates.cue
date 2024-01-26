@@ -27,7 +27,11 @@ import (
 		annotations: #config.metadata.annotations
 	}
 	#Data: {
-		"password-jks": "changeme" // it's fine, secret don't add any security here
+		// it's fine, secret don't add any security here
+		// TODO Next version of cert manager, a pwd will be set by default
+		// https://github.com/cert-manager/cert-manager/pull/6657
+		// then we can remove this secret and use the default
+		"password-jks": "changeit" // it's fine, secret don't add any security here
 	}
 }
 

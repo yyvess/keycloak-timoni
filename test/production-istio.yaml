@@ -44,6 +44,11 @@ spec:
     port: 7800
     protocol: TCP
     targetPort: jgroups
+  - appProtocol: tcp
+    name: jgroups-ssl
+    port: 2157
+    protocol: TCP
+    targetPort: jgroups
   publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: keycloak
@@ -196,6 +201,8 @@ spec:
     ports:
     - port: 7800
       protocol: TCP
+    - port: 2157
+      protocol: TCP
   podSelector:
     matchLabels:
       app.kubernetes.io/name: keycloak
@@ -215,7 +222,7 @@ spec:
   gateways:
   - istio-system/istio-ingressgateway
   hosts:
-  - keycloak.myorgs.com
+  - keycloak.myorg.com
   http:
   - directResponse:
       status: 403
@@ -346,6 +353,7 @@ spec:
         volumeMounts:
         - mountPath: /opt/keycloak/conf
           name: cache
+          readOnly: true
       serviceAccountName: default
       volumes:
       - configMap:

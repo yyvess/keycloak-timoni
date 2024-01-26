@@ -105,20 +105,23 @@ import (
 						volumeMounts: [
 							if #config.ha {
 								{
-									mountPath: "/opt/keycloak/conf"
 									name:      "cache"
+									mountPath: "/opt/keycloak/conf"
+									readOnly: true
 								}
 							},
 							if #certSecretName != _|_ {
 								{
-									mountPath: "/certs"
 									name:      "certs"
+									mountPath: "/certs"
+									readOnly: true
 								}
 							},
 							if #jksSecretName != _|_ {
 								{
-									mountPath: "/jks"
 									name:      "jks"
+									mountPath: "/jks"
+									readOnly: true
 								}
 							},
 						]

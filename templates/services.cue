@@ -59,7 +59,14 @@ import (
 		ports: [
 			{
 				name:       "jgroups"
-				port:       #config.cache.jgroups.port
+				port:       7800
+				protocol:   "TCP"
+				targetPort: "jgroups"
+				appProtocol: "tcp"
+			},
+			{
+				name:       "jgroups-ssl"
+				port:       2157
 				protocol:   "TCP"
 				targetPort: "jgroups"
 				appProtocol: "tcp"

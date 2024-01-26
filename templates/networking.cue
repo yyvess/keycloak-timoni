@@ -43,7 +43,10 @@ import (
 					]
 					ports: [{
 						protocol: "TCP"
-						port:     #config.cache.jgroups.port
+						port:     7800
+					}, {
+						protocol: "TCP"
+						port:     2157
 					},
 					]}
 			},
