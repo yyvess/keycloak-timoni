@@ -169,7 +169,6 @@ import (
 		stack: *"kubernetes" | "tcp" | "udp" | "ec2" | "azure" | "google"
 		jgroups: {
 			name: *"jgroups" | string
-			port: *7800 | int & >0 & <=65535
 		}
 	}
 

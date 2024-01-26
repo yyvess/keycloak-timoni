@@ -38,10 +38,10 @@ metadata:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak-jks-pwd
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-jks-pwd-86dfda33
+  name: keycloak-jks-pwd-d89b3236
   namespace: test
 stringData:
-  password-jks: changeme
+  password-jks: changeit
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -64,7 +64,7 @@ spec:
       create: true
       passwordSecretRef:
         key: password-jks
-        name: keycloak-jks-pwd-86dfda33
+        name: keycloak-jks-pwd-d89b3236
   secretName: keycloak-jks
 ---
 apiVersion: cert-manager.io/v1
@@ -118,6 +118,11 @@ spec:
     port: 7800
     protocol: TCP
     targetPort: jgroups
+  - appProtocol: tcp
+    name: jgroups-ssl
+    port: 2157
+    protocol: TCP
+    targetPort: jgroups
   publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: keycloak
@@ -130,11 +135,11 @@ data:
     \         xmlns=\"urn:infinispan:config:11.0\">\n      <jgroups>\n          <!--\n
     \         source: https://infinispan.org/docs/13.0.x/titles/embedding/embedding.html\n
     \         -->\n          <stack name=\"encrypt-kubernetes\" extends=\"kubernetes\">\n\t\t\t\t\t\t\t<SSL_KEY_EXCHANGE
-    keystore_name=\"/jks/keystore.jks:\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tkeystore_password=\"changeit\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.combine=\"INSERT_AFTER\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.position=\"VERIFY_SUSPECT2\"/>\n
+    keystore_name=\"/jks/keystore.jks\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tkeystore_password=\"changeit\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tport=\"2157\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tport_range=\"0\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.combine=\"INSERT_AFTER\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.position=\"VERIFY_SUSPECT2\"/>\n
     \             <ASYM_ENCRYPT use_external_key_exchange=\"true\"\n                            change_key_on_leave=\"false\"\n
-    \                           change_key_on_coord_leave=\"false\"\n                            asym_keylength=\"2048\"\n
-    \                           sym_keylength=\"128\"\n                            sym_algorithm=\"AES\"\n
-    \                           asym_algorithm=\"RSA\"\n                            stack.combine=\"INSERT_BEFORE\"\n
+    \                           change_key_on_coord_leave=\"false\"\n                            sym_algorithm=\"AES\"\n
+    \                           sym_keylength=\"128\"\n                            asym_algorithm=\"RSA\"\n
+    \                           asym_keylength=\"2048\"\n                            stack.combine=\"INSERT_BEFORE\"\n
     \                           stack.position=\"pbcast.NAKACK2\"/>\n          </stack>\n
     \     </jgroups>\n\n      <cache-container name=\"keycloak\">\n          <transport
     stack=\"encrypt-kubernetes\" lock-timeout=\"60000\"/>\n          <local-cache
@@ -174,7 +179,7 @@ metadata:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-cc75f05f
+  name: keycloak-bef22f5a
   namespace: test
 ---
 apiVersion: policy/v1
@@ -214,6 +219,8 @@ spec:
           app.kubernetes.io/name: keycloak
     ports:
     - port: 7800
+      protocol: TCP
+    - port: 2157
       protocol: TCP
   podSelector:
     matchLabels:
@@ -332,10 +339,13 @@ spec:
         volumeMounts:
         - mountPath: /opt/keycloak/conf
           name: cache
+          readOnly: true
         - mountPath: /certs
           name: certs
+          readOnly: true
         - mountPath: /jks
           name: jks
+          readOnly: true
       serviceAccountName: default
       volumes:
       - name: certs
@@ -348,6 +358,6 @@ spec:
           items:
           - key: cache-ispn.xml
             path: cache-ispn.xml
-          name: keycloak-cc75f05f
+          name: keycloak-bef22f5a
         name: cache
 ---

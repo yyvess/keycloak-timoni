@@ -42,6 +42,11 @@ spec:
     port: 7800
     protocol: TCP
     targetPort: jgroups
+  - appProtocol: tcp
+    name: jgroups-ssl
+    port: 2157
+    protocol: TCP
+    targetPort: jgroups
   publishNotReadyAddresses: true
   selector:
     app.kubernetes.io/name: keycloak
@@ -257,6 +262,7 @@ spec:
         volumeMounts:
         - mountPath: /opt/keycloak/conf
           name: cache
+          readOnly: true
       serviceAccountName: default
       volumes:
       - configMap:

@@ -20,17 +20,19 @@ import (
 				          source: https://infinispan.org/docs/13.0.x/titles/embedding/embedding.html
 				          -->
 				          <stack name="encrypt-kubernetes" extends="kubernetes">
-											<SSL_KEY_EXCHANGE keystore_name="/jks/keystore.jks:"
+											<SSL_KEY_EXCHANGE keystore_name="/jks/keystore.jks"
 																							keystore_password="changeit"
+																							port="2157"
+																							port_range="0"
 																							stack.combine="INSERT_AFTER"
 																							stack.position="VERIFY_SUSPECT2"/>
 				              <ASYM_ENCRYPT use_external_key_exchange="true"
 				                            change_key_on_leave="false"
 				                            change_key_on_coord_leave="false"
-				                            asym_keylength="2048"
-				                            sym_keylength="128"
 				                            sym_algorithm="AES"
+				                            sym_keylength="128"
 				                            asym_algorithm="RSA"
+				                            asym_keylength="2048"
 				                            stack.combine="INSERT_BEFORE"
 				                            stack.position="pbcast.NAKACK2"/>
 				          </stack>

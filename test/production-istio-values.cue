@@ -14,7 +14,7 @@ values: {
 	virtualService: {
 		gateways: [{"istio-system/istio-ingressgateway"}]
 		hosts: [
-			"keycloak.myorgs.com",
+			"keycloak.myorg.com",
 		]
 	}
 
