@@ -36,10 +36,22 @@ values: {
 		}
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD:  "admin"
-		KC_DB:                    "postgres"
-		KC_DB_USERNAME:           "admin"
-		KC_DB_PASSWORD:           "admin"
+	admin: {
+		password: {value: "admin"}
 	}
+
+	database: {
+		type: {value: "postgres"}
+		url: {value: "jdbc:postgresql://localhost/keycloak"}
+		username: {value: "keycloak"}
+		password: {
+			valueFrom: {
+				secretKeyRef: {
+					name: "my-secret"
+					key:  "my-key"
+				}
+			}
+		}
+	}
+
 }

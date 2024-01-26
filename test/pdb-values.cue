@@ -16,8 +16,14 @@ values: {
 		maxUnavailable: 1
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_DB:                    "postgres"
+	database: {
+		type: {value: "postgres"}
+	}
+	admin: {
+		password: {value: "admin"}
+	}
+
+	java: {
+		options: "-Xms256m"
 	}
 }

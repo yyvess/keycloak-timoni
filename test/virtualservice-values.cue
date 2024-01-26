@@ -44,10 +44,13 @@ values: {
 		]},
 	]
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_PROXY:                "edge"
-		KC_HOSTNAME_STRICT:      false
-		KC_LOG_LEVEL:            "DEBUG"
+	admin: {
+		password: {value: "admin"}
 	}
+
+	extraEnvs: [
+		{name: "KC_PROXY", value:           "edge"},
+		{name: "KC_HOSTNAME_STRICT", value: "false"},
+		{name: "KC_LOG_LEVEL", value:       "DEBUG"},
+	]
 }

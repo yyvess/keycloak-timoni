@@ -48,20 +48,16 @@ spec:
         - /opt/keycloak/bin/kc.sh
         - start
         env:
-        - name: KC_CACHE
-          value: local
         - name: KC_HEALTH_ENABLED
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
-        - name: KC_HOSTNAME_STRICT
-          value: "false"
+        - name: KC_CACHE
+          value: local
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
-        - name: KC_CACHE_STACK
-          value: kubernetes
         image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
         imagePullPolicy: IfNotPresent
         livenessProbe:

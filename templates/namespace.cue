@@ -5,11 +5,11 @@ import (
 )
 
 #Namespace: corev1.#Namespace & {
-	#config: #Config
+	#config:    #Config
 	apiVersion: "v1"
 	kind:       "Namespace"
 	metadata: {
-		name:   #config.metadata.namespace
+		name: #config.metadata.namespace
 		if #config.virtualService != _|_ {
 			labels: "istio-injection": "enabled"
 		}

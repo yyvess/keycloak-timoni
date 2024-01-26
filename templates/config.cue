@@ -105,6 +105,8 @@ import (
 	// App settings.
 	command: [...string] | *["/opt/keycloak/bin/kc.sh", "start"]
 
+	extraEnvs: [...corev1.#EnvVar] | *[]
+
 	ha: replicas > 1
 
 	serviceAccountCreate: *false | bool
@@ -142,57 +144,33 @@ import (
 
 	ingress?: netv1.#IngressSpec
 
-
-	fileDb: false | *(envs.KC_DB == "dev-file" | envs.KC_DB == _|_)
-
-	jgroups: {
-		name: *"jgroups" | string
-		port: *7800 | int & >0 & <=65535
+	admin: {
+		user: *{value: *"admin" | string} | {valueFrom?: corev1.#EnvVarSource}
+		password!: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}
 	}
 
-	envs: {
+	java: {
+		options?: string
+	}
+
+	database: {
 		if !ha {
-			KC_DB?:            "dev-mem" | "dev-file" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
-			KC_CACHE:          "local"
-			JAVA_OPTS_APPEND?: string
+			type?: *{value: *"dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
 		}
 		if ha {
-			KC_DB!:               "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
-			KC_CACHE:             "ispn"
-			KC_CACHE_CONFIG_FILE: "cache-ispn.xml"
-			JAVA_OPTS_APPEND:     *"-Djgroups.dns.query=\( metadata.name )-\( jgroups.name )" | string
+			type: *{value: "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
 		}
-		KC_HEALTH_ENABLED:               true
-		KC_HTTP_ENABLED:                 *true | false
-		KC_HTTP_PORT?:                   int & >0 & <=65535
-		KC_HTTPS_PORT?:                  int & >0 & <=65535
-		KC_HOSTNAME_PORT?:               int & >0 & <=65535
-		KC_HOSTNAME?:                    string
-		KC_HOSTNAME_ADMIN?:              string
-		KC_HOSTNAME_URL?:                string
-		KC_HOSTNAME_ADMIN_URL?:          string
-		KC_HOSTNAME_PATH?:               string
-		KC_HOSTNAME_STRICT?:             true | false
-		KC_HOSTNAME_STRICT_HTTPS?:       true | false
-		KC_HOSTNAME_STRICT_BACKCHANNEL?: true | false
-		KC_PROXY?:                       "none" | "edge" | "reencrypt" | "passthrough"
-		KC_METRICS_ENABLED?:             true | false
-		KEYCLOAK_ADMIN:                  *"admin" | string | #secretReference
-		KEYCLOAK_ADMIN_PASSWORD:         string | #secretReference
-		KC_DB_URL?:                      string | #secretReference
-		KC_DB_USERNAME?:                 string | #secretReference
-		KC_DB_PASSWORD?:                 string | #secretReference
-		KC_CACHE_STACK:                  *"kubernetes" | "tcp" | "udp" | "ec2" | "azure" | "google"
-		KC_LOG_LEVEL?:                   string
-		KC_LOG_CONSOLE_OUTPUT?:          string
-		KC_LOG_CONSOLE_FORMAT?:          string
-		if certificateCreate {
-			KC_HTTPS_CERTIFICATE_FILE:     *"/certs/tls.crt" | string
-			KC_HTTPS_CERTIFICATE_KEY_FILE: *"/certs/tls.key" | string
-		}
-		if !certificateCreate {
-			KC_HTTPS_CERTIFICATE_FILE?:     string
-			KC_HTTPS_CERTIFICATE_KEY_FILE?: string
+		url?: *{value?: string} | corev1.#EnvVarSource
+		username?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}
+		password?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}
+	}
+
+	cache: {
+		stack: *"kubernetes" | "tcp" | "udp" | "ec2" | "azure" | "google"
+		jgroups: {
+			name: *"jgroups" | string
+			port: *7800 | int & >0 & <=65535
 		}
 	}
+
 }

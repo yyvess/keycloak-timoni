@@ -21,16 +21,7 @@ values: {
 			name: "kjj"
 			annotations: {"custom": "test"}}
 	}
-
-	envs: {
-		KEYCLOAK_ADMIN:           "admin"
-		KEYCLOAK_ADMIN_PASSWORD:  "admin"
-		KC_DB_USERNAME:           "admin"
-		KC_DB_PASSWORD:           "admin"
-		KC_HOSTNAME_PORT:         8080
-		KC_HOSTNAME_URL:          "http://localhost:8080/"
-		KC_HOSTNAME_STRICT:       false
-		KC_HOSTNAME_STRICT_HTTPS: false
-		KC_LOG_LEVEL:             "DEBUG"
+	admin: {
+		password: {value: "admin"}
 	}
 }

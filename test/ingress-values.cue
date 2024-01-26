@@ -39,10 +39,8 @@ values: {
 			}}]
 	}
 
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_PROXY:                "edge"
-		KC_HOSTNAME_STRICT:      false
-		KC_LOG_LEVEL:            "DEBUG"
+	admin: {
+		password: {value: "admin"}
 	}
+
 }
