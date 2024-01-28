@@ -13,10 +13,13 @@ To create an instance, create a file `my-values.cue` with the following content:
 
 ```cue
 values: {
-	envs: {
-		KEYCLOAK_ADMIN_PASSWORD: "admin"
-		KC_HOSTNAME_STRICT:       false
+	admin: {
+		password: {value: "admin"}
 	}
+	extraEnvs: [
+		{name: "KC_HOSTNAME_STRICT", value: "false"},
+		{name: "KC_LOG_LEVEL", value:       "INFO"},
+	]
 }
 ```
 
