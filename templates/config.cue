@@ -107,8 +107,6 @@ import (
 
 	extraEnvs: [...corev1.#EnvVar] | *[]
 
-	ha: replicas > 1
-
 	serviceAccountCreate: *false | bool
 	serviceAccount:       corev1.#ServiceAccount
 
@@ -121,7 +119,7 @@ import (
 	}
 
 	jksCreate: *false | bool
-	// Requird to securize Jgroup in HA
+	// Requird to securize Jgroup
 	jks: certv1.#CertificateSpec & {
 		commonName: *"infinispan-jks" | string
 		issuerRef: name: *"\(metadata.name)" | string
@@ -132,7 +130,7 @@ import (
 	issuerCreate: *false | bool
 	issuer:       issuerv1.#IssuerSpec
 
-	pdbCreate: bool | *ha
+	pdbCreate: bool | *(replicas > 1)
 	pdb: policyv1.#PodDisruptionBudgetSpec & {
 		minAvailable: *1 | int & >0 & <=65535
 	}
@@ -154,10 +152,10 @@ import (
 	}
 
 	database: {
-		if !ha {
+		if !(replicas > 1) {
 			type?: *{value: *"dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
 		}
-		if ha {
+		if replicas > 1 {
 			type: *{value: "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
 		}
 		url?: *{value?: string} | corev1.#EnvVarSource

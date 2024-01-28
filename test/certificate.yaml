@@ -256,16 +256,14 @@ spec:
           value: "true"
         - name: KC_HTTP_ENABLED
           value: "true"
-        - name: KC_DB
-          value: postgres
+        - name: JAVA_OPTS_APPEND
+          value: -Djgroups.dns.query=keycloak-jgroups
         - name: KC_CACHE
           value: ispn
         - name: KC_CACHE_STACK
           value: kubernetes
         - name: KC_CACHE_CONFIG_FILE
           value: cache-ispn.xml
-        - name: JAVA_OPTS_APPEND
-          value: -Djgroups.dns.query=keycloak-jgroups
         - name: KC_HTTPS_CERTIFICATE_FILE
           value: /certs/tls.crt
         - name: KC_HTTPS_CERTIFICATE_KEY_FILE
@@ -274,6 +272,8 @@ spec:
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
+        - name: KC_DB
+          value: postgres
         - name: KC_DB_URL
           value: jdbc:postgresql://localhost/keycloak
         - name: KC_DB_USERNAME

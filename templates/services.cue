@@ -54,21 +54,21 @@ import (
 	#config:    #Config
 	#component: "jgroups"
 	spec: {
-		clusterIP: "None"
+		clusterIP:                "None"
 		publishNotReadyAddresses: true
 		ports: [
 			{
-				name:       "jgroups"
-				port:       7800
-				protocol:   "TCP"
-				targetPort: "jgroups"
+				name:        "jgroups"
+				port:        7800
+				protocol:    "TCP"
+				targetPort:  "jgroups"
 				appProtocol: "tcp"
 			},
 			{
-				name:       "jgroups-ssl"
-				port:       2157
-				protocol:   "TCP"
-				targetPort: "jgroups"
+				name:        "jgroups-ssl"
+				port:        2157
+				protocol:    "TCP"
+				targetPort:  "jgroups"
 				appProtocol: "tcp"
 			},
 		]

@@ -6,7 +6,8 @@ import (
 )
 
 #Deployment: appsv1.#Deployment & {
-	#config: #Config
+	#config:           #Config
+	#highAvailability: bool
 	#envs: [...corev1.#EnvVar]
 	#cmName:         string
 	#certSecretName: string
@@ -14,6 +15,17 @@ import (
 	apiVersion:      "apps/v1"
 	kind:            "Deployment"
 	metadata:        #config.metadata
+
+	#javaOpts?: string
+	if #highAvailability && #config.java.options == _|_ {
+		#javaOpts: "-Djgroups.dns.query=\( #config.metadata.name )-\( #config.cache.jgroups.name )"
+	}
+	if #highAvailability && #config.java.options != _|_ {
+		#javaOpts: "\( #config.java.options ) -Djgroups.dns.query=\( #config.metadata.name )-\( #config.cache.jgroups.name )"
+	}
+	if !#highAvailability && #config.java.options != _|_ {
+		#javaOpts: #config.java.options
+	}
 
 	spec: appsv1.#DeploymentSpec & {
 		replicas: #config.replicas
@@ -41,6 +53,27 @@ import (
 						env: [
 							{name: "KC_HEALTH_ENABLED", value: "true"},
 							{name: "KC_HTTP_ENABLED", value:   "true"},
+							if #javaOpts != _|_ {
+								{name: "JAVA_OPTS_APPEND", value: #javaOpts}
+							},
+							if !#highAvailability {
+								{name: "KC_CACHE", value: "local"}
+							},
+							if #highAvailability {
+								{name: "KC_CACHE", value: "ispn"}
+							},
+							if #highAvailability {
+								{name: "KC_CACHE_STACK", value: #config.cache.stack}
+							},
+							if #highAvailability {
+								{name: "KC_CACHE_CONFIG_FILE", value: "cache-ispn.xml"}
+							},
+							if #config.certificateCreate {
+								{name: "KC_HTTPS_CERTIFICATE_FILE", value: "/certs/tls.crt"}
+							},
+							if #config.certificateCreate {
+								{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}
+							},
 							for x in #envs {x},
 							for x in #config.extraEnvs {x},
 						]
@@ -57,7 +90,7 @@ import (
 									protocol:      "TCP"
 								}
 							},
-							if #config.ha {
+							if #highAvailability {
 								{
 									name:          "jgroups"
 									containerPort: 7800
@@ -103,25 +136,25 @@ import (
 							}
 						}
 						volumeMounts: [
-							if #config.ha {
+							if #highAvailability {
 								{
 									name:      "cache"
 									mountPath: "/opt/keycloak/conf"
-									readOnly: true
+									readOnly:  true
 								}
 							},
 							if #certSecretName != _|_ {
 								{
 									name:      "certs"
 									mountPath: "/certs"
-									readOnly: true
+									readOnly:  true
 								}
 							},
 							if #jksSecretName != _|_ {
 								{
 									name:      "jks"
 									mountPath: "/jks"
-									readOnly: true
+									readOnly:  true
 								}
 							},
 						]
@@ -146,7 +179,7 @@ import (
 							}
 						}
 					},
-					if #config.ha {
+					if #highAvailability {
 						{
 							name: "cache"
 							configMap: {

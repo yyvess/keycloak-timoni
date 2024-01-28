@@ -5,10 +5,11 @@ import (
 )
 
 #NetworkPolicy: netv1.#NetworkPolicy & {
-	apiVersion: "networking.k8s.io/v1"
-	kind:       "NetworkPolicy"
-	#config:    #Config
-	metadata:   #config.metadata
+	apiVersion:        "networking.k8s.io/v1"
+	kind:              "NetworkPolicy"
+	metadata:          #config.metadata
+	#config:           #Config
+	#highAvailability: bool
 	spec: netv1.#NetworkPolicySpec & {
 		policyTypes: ["Ingress"]
 		podSelector: {
@@ -31,7 +32,7 @@ import (
 				},
 				]},
 			// Allow Keycloak Jgroup
-			if #config.ha {
+			if #highAvailability {
 				{
 					from: [{
 						podSelector: {
