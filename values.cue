@@ -10,8 +10,8 @@ values: {
 
 	image: {
 		repository: "quay.io/keycloak/keycloak"
-		digest:     "sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a"
-		tag:        "23.0"
+		digest:     "sha256:8772ab5e763f3374b7bb70bce4a96ad384b39c548c40007113538e103ee8a8f2"
+		tag:        "23.0.5"
 	}
 
 }

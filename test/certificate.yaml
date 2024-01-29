@@ -130,48 +130,96 @@ spec:
 ---
 apiVersion: v1
 data:
-  cache-ispn.xml: "  <infinispan\n          xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n
-    \         xsi:schemaLocation=\"urn:infinispan:config:11.0 http://www.infinispan.org/schemas/infinispan-config-11.0.xsd\"\n
-    \         xmlns=\"urn:infinispan:config:11.0\">\n      <jgroups>\n          <!--\n
-    \         source: https://infinispan.org/docs/13.0.x/titles/embedding/embedding.html\n
-    \         -->\n          <stack name=\"encrypt-kubernetes\" extends=\"kubernetes\">\n\t\t\t\t\t\t\t<SSL_KEY_EXCHANGE
-    keystore_name=\"/jks/keystore.jks\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tkeystore_password=\"changeit\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tport=\"2157\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tport_range=\"0\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.combine=\"INSERT_AFTER\"\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tstack.position=\"VERIFY_SUSPECT2\"/>\n
-    \             <ASYM_ENCRYPT use_external_key_exchange=\"true\"\n                            change_key_on_leave=\"false\"\n
-    \                           change_key_on_coord_leave=\"false\"\n                            sym_algorithm=\"AES\"\n
-    \                           sym_keylength=\"128\"\n                            asym_algorithm=\"RSA\"\n
-    \                           asym_keylength=\"2048\"\n                            stack.combine=\"INSERT_BEFORE\"\n
-    \                           stack.position=\"pbcast.NAKACK2\"/>\n          </stack>\n
-    \     </jgroups>\n\n      <cache-container name=\"keycloak\">\n          <transport
-    stack=\"encrypt-kubernetes\" lock-timeout=\"60000\"/>\n          <local-cache
-    name=\"realms\">\n              <encoding>\n                  <key media-type=\"application/x-java-object\"/>\n
-    \                 <value media-type=\"application/x-java-object\"/>\n              </encoding>\n
-    \             <memory max-count=\"10000\"/>\n          </local-cache>\n          <local-cache
-    name=\"users\">\n              <encoding>\n                  <key media-type=\"application/x-java-object\"/>\n
-    \                 <value media-type=\"application/x-java-object\"/>\n              </encoding>\n
-    \             <memory max-count=\"10000\"/>\n          </local-cache>\n          <distributed-cache
-    name=\"sessions\" owners=\"2\">\n              <expiration lifespan=\"-1\"/>\n
-    \         </distributed-cache>\n          <distributed-cache name=\"authenticationSessions\"
-    owners=\"2\">\n              <expiration lifespan=\"-1\"/>\n          </distributed-cache>\n
-    \         <distributed-cache name=\"offlineSessions\" owners=\"2\">\n              <expiration
-    lifespan=\"-1\"/>\n          </distributed-cache>\n          <distributed-cache
-    name=\"clientSessions\" owners=\"2\">\n              <expiration lifespan=\"-1\"/>\n
-    \         </distributed-cache>\n          <distributed-cache name=\"offlineClientSessions\"
-    owners=\"2\">\n              <expiration lifespan=\"-1\"/>\n          </distributed-cache>\n
-    \         <distributed-cache name=\"loginFailures\" owners=\"2\">\n              <expiration
-    lifespan=\"-1\"/>\n          </distributed-cache>\n          <local-cache name=\"authorization\">\n
-    \             <encoding>\n                  <key media-type=\"application/x-java-object\"/>\n
-    \                 <value media-type=\"application/x-java-object\"/>\n              </encoding>\n
-    \             <memory max-count=\"10000\"/>\n          </local-cache>\n          <replicated-cache
-    name=\"work\">\n              <expiration lifespan=\"-1\"/>\n          </replicated-cache>\n
-    \         <local-cache name=\"keys\">\n              <encoding>\n                  <key
-    media-type=\"application/x-java-object\"/>\n                  <value media-type=\"application/x-java-object\"/>\n
-    \             </encoding>\n              <expiration max-idle=\"3600000\"/>\n
-    \             <memory max-count=\"1000\"/>\n          </local-cache>\n          <distributed-cache
-    name=\"actionTokens\" owners=\"2\">\n              <encoding>\n                  <key
-    media-type=\"application/x-java-object\"/>\n                  <value media-type=\"application/x-java-object\"/>\n
-    \             </encoding>\n              <expiration max-idle=\"-1\" lifespan=\"-1\"
-    interval=\"300000\"/>\n              <memory max-count=\"-1\"/>\n          </distributed-cache>\n
-    \     </cache-container>\n  </infinispan>"
+  cache-ispn.xml: |2-
+      <infinispan
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="urn:infinispan:config:11.0 http://www.infinispan.org/schemas/infinispan-config-11.0.xsd"
+              xmlns="urn:infinispan:config:11.0">
+          <jgroups>
+              <!--
+              source: https://infinispan.org/docs/13.0.x/titles/embedding/embedding.html
+              -->
+              <stack name="encrypt-kubernetes" extends="kubernetes">
+                  <SSL_KEY_EXCHANGE keystore_name="/jks/keystore.jks"
+                                          keystore_password="changeit"
+                                          port="2157"
+                                          port_range="0"
+                                          stack.combine="INSERT_AFTER"
+                                          stack.position="VERIFY_SUSPECT2"/>
+                  <ASYM_ENCRYPT use_external_key_exchange="true"
+                                change_key_on_leave="false"
+                                change_key_on_coord_leave="false"
+                                sym_algorithm="AES"
+                                sym_keylength="128"
+                                asym_algorithm="RSA"
+                                asym_keylength="2048"
+                                stack.combine="INSERT_BEFORE"
+                                stack.position="pbcast.NAKACK2"/>
+              </stack>
+          </jgroups>
+
+          <cache-container name="keycloak">
+              <transport stack="encrypt-kubernetes" lock-timeout="60000"/>
+              <local-cache name="realms">
+                  <encoding>
+                      <key media-type="application/x-java-object"/>
+                      <value media-type="application/x-java-object"/>
+                  </encoding>
+                  <memory max-count="10000"/>
+              </local-cache>
+              <local-cache name="users">
+                  <encoding>
+                      <key media-type="application/x-java-object"/>
+                      <value media-type="application/x-java-object"/>
+                  </encoding>
+                  <memory max-count="10000"/>
+              </local-cache>
+              <distributed-cache name="sessions" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <distributed-cache name="authenticationSessions" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <distributed-cache name="offlineSessions" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <distributed-cache name="clientSessions" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <distributed-cache name="offlineClientSessions" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <distributed-cache name="loginFailures" owners="2">
+                  <expiration lifespan="-1"/>
+              </distributed-cache>
+              <local-cache name="authorization">
+                  <encoding>
+                      <key media-type="application/x-java-object"/>
+                      <value media-type="application/x-java-object"/>
+                  </encoding>
+                  <memory max-count="10000"/>
+              </local-cache>
+              <replicated-cache name="work">
+                  <expiration lifespan="-1"/>
+              </replicated-cache>
+              <local-cache name="keys">
+                  <encoding>
+                      <key media-type="application/x-java-object"/>
+                      <value media-type="application/x-java-object"/>
+                  </encoding>
+                  <expiration max-idle="3600000"/>
+                  <memory max-count="1000"/>
+              </local-cache>
+              <distributed-cache name="actionTokens" owners="2">
+                  <encoding>
+                      <key media-type="application/x-java-object"/>
+                      <value media-type="application/x-java-object"/>
+                  </encoding>
+                  <expiration max-idle="-1" lifespan="-1" interval="300000"/>
+                  <memory max-count="-1"/>
+              </distributed-cache>
+          </cache-container>
+      </infinispan>
 immutable: true
 kind: ConfigMap
 metadata:
@@ -179,7 +227,7 @@ metadata:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: keycloak-bef22f5a
+  name: keycloak-66d00e6e
   namespace: test
 ---
 apiVersion: policy/v1
@@ -283,7 +331,7 @@ spec:
             secretKeyRef:
               key: my-key
               name: my-secret
-        image: quay.io/keycloak/keycloak:23.0@sha256:cff31dc6fbb0ab0b66176b990e6b9e262fa74a501abb9a4bfa4a529cbc8a526a
+        image: quay.io/keycloak/keycloak:23.0.5@sha256:8772ab5e763f3374b7bb70bce4a96ad384b39c548c40007113538e103ee8a8f2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -358,6 +406,6 @@ spec:
           items:
           - key: cache-ispn.xml
             path: cache-ispn.xml
-          name: keycloak-bef22f5a
+          name: keycloak-66d00e6e
         name: cache
 ---
