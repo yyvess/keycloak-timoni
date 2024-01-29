@@ -19,6 +19,7 @@ values: {
 			"keycloak.myorg.com",
 		]
 	}
+	issuerCreate:        true
 	jksCreate:           true
 	networkPolicyCreate: true
 

@@ -86,7 +86,7 @@ import (
 	service: {
 		annotations?: timoniv1.#Annotations
 		https:        true | *false
-		port: *[if https {8443}, {8080}][0] | int & >0 & <=65535
+		port:         *[if https {8443}, {8080}][0] | int & >0 & <=65535
 	}
 
 	// Pod optional settings.
@@ -105,6 +105,12 @@ import (
 	serviceAccountCreate: *false | bool
 	serviceAccount:       corev1.#ServiceAccount
 
+	// Issuer used to generate certificate & jks
+	issuerCreate: *false | bool
+	issuer: issuerv1.#IssuerSpec | *{
+		selfSigned: {}
+	}
+
 	certificateCreate: *false | bool
 	// Web certificate
 	certificate: certv1.#CertificateSpec & {
@@ -120,10 +126,6 @@ import (
 		issuerRef: name: *"\(metadata.name)" | string
 		secretName: "\(metadata.name)-jks"
 	}
-
-	// Issuer used to generate certificate & jks
-	issuerCreate: *false | bool
-	issuer:       issuerv1.#IssuerSpec
 
 	pdbCreate: bool | *(replicas > 1)
 	pdb: policyv1.#PodDisruptionBudgetSpec & {

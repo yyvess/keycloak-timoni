@@ -42,6 +42,18 @@ spec:
         name: keycloak-jks-pwd-d89b3236
   secretName: keycloak-jks
 ---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: zel-test
+spec:
+  selfSigned: {}
+---
 apiVersion: v1
 kind: Service
 metadata:
