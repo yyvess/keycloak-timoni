@@ -1,0 +1,30 @@
+#####
+#
+# Deploy minimal postgres database
+#
+# kubectl apply -n postgres -f samples/ha/postgres.yaml
+#
+# Required Zalando Postgres operator installed on the cluster
+# https://github.com/zalando/postgres-operator?tab=readme-ov-file
+#
+
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+    name: minimal-postgres
+spec:
+    teamId: myorgs
+    spiloFSGroup: 103
+    spiloRunAsGroup: 103
+    spiloRunAsUser: 101
+    volume:
+        size: 1Gi
+    numberOfInstances: 1
+    preparedDatabases:
+        keycloakdb:
+            defaultUsers: false
+            schemas:
+                keycloak:
+                    defaultUsers: true
+    postgresql:
+        version: "15"

@@ -24,9 +24,12 @@ jobs:
                   registry: ghcr.io
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
-            - name: Vet module
+            - name: Vet module minimum
               run: |
-                  timoni mod vet . -f test/minimum-values.cue
+                  timoni mod vet . -f samples/minimum/minimum-values.cue
+            - name: Vet module ha
+              run: |
+                  timoni mod vet . -f samples/ha/postgres-istio-values.cue
             - name: Push and Sign
               run: |
                   timoni mod push . \

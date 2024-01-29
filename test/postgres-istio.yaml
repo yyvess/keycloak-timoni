@@ -288,12 +288,12 @@ spec:
           valueFrom:
             secretKeyRef:
               key: username
-              name: keycloakdb.credentials
+              name: keycloakdb-keycloak-owner-user.minimal-postgres.credentials
         - name: KC_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: password
-              name: keycloakdb.credentials
+              name: keycloakdb-keycloak-owner-user.minimal-postgres.credentials
         - name: KC_PROXY
           value: edge
         - name: KC_HOSTNAME_STRICT

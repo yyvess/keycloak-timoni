@@ -23,7 +23,7 @@ values: {
 	certificate: {
 		duration:    "2160h0m0s"
 		renewBefore: "360h0m0s"
-		subject: organizations: ["zelros.com"]
+		subject: organizations: ["myorg.com"]
 		privateKey: {
 			algorithm: "RSA"
 			encoding:  "PKCS1"

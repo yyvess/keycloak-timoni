@@ -19,7 +19,7 @@ values: {
 	virtualService: {
 		gateways: [{"istio-system/istio-ingressgateway"}]
 		hosts: [
-			"keycloak.dev.eu.zelros.com",
+			"keycloak.myorg.com",
 		]
 	}
 

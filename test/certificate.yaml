@@ -28,7 +28,7 @@ spec:
   secretName: keycloak-cert
   subject:
     organizations:
-    - zelros.com
+    - myorg.com
 ---
 apiVersion: v1
 immutable: true

@@ -1,6 +1,8 @@
-// Note that this file must have no imports and all values must be concrete.
-
-// Unsecure Keycloak deployment in http with HA
+//
+// Keycloak HA deployment with Istio & Postgres database
+//
+// ! Requird a cluster with Cert manager, Istio & Zalando Postgres operator
+//
 
 @if(!debug)
 
@@ -49,7 +51,7 @@ values: {
 		username: {
 			valueFrom: {
 				secretKeyRef: {
-					name: "keycloakdb.credentials"
+					name: "keycloakdb-keycloak-owner-user.minimal-postgres.credentials"
 					key:  "username"
 				}
 			}
@@ -57,7 +59,7 @@ values: {
 		password: {
 			valueFrom: {
 				secretKeyRef: {
-					name: "keycloakdb.credentials"
+					name: "keycloakdb-keycloak-owner-user.minimal-postgres.credentials"
 					key:  "password"
 				}
 			}
