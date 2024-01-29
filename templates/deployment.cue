@@ -55,28 +55,22 @@ import (
 							{name: "KC_HTTP_ENABLED", value:   "true"},
 							if #javaOpts != _|_ {
 								{name: "JAVA_OPTS_APPEND", value: #javaOpts}
-							},
-							if !#highAvailability {
-								{name: "KC_CACHE", value: "local"}
-							},
-							if #highAvailability {
-								{name: "KC_CACHE", value: "ispn"}
-							},
-							if #highAvailability {
-								{name: "KC_CACHE_STACK", value: #config.cache.stack}
-							},
-							if #highAvailability {
-								{name: "KC_CACHE_CONFIG_FILE", value: "cache-ispn.xml"}
-							},
-							if #config.certificateCreate {
-								{name: "KC_HTTPS_CERTIFICATE_FILE", value: "/certs/tls.crt"}
-							},
-							if #config.certificateCreate {
-								{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}
-							},
-							for x in #envs {x},
-							for x in #config.extraEnvs {x},
-						]
+							}] +
+							[if #highAvailability {
+								[
+									{name: "KC_CACHE", value:             "ispn"},
+									{name: "KC_CACHE_STACK", value:       #config.cache.stack},
+									{name: "KC_CACHE_CONFIG_FILE", value: "cache-ispn.xml"}]},
+								[
+									{name: "KC_CACHE", value: "local"}]][0] +
+							[if #config.certificateCreate {
+								[
+									{name: "KC_HTTPS_CERTIFICATE_FILE", value:     "/certs/tls.crt"},
+									{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}]},
+								[]][0] +
+							[for x in #envs {x}] +
+							[for x in #config.extraEnvs {x}]
+
 						ports: [
 							{
 								name:          "http"

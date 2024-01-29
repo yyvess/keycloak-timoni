@@ -19,7 +19,7 @@ values: {
 			"keycloak.myorg.com",
 		]
 	}
-
+	jksCreate:           true
 	networkPolicyCreate: true
 
 	networkPolicyRules: [{

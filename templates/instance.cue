@@ -65,7 +65,6 @@ package templates
 			if objects.jks.spec.secretName != _|_ {
 				#jksSecretName: objects.jks.spec.secretName
 			}
-
 			#envs: [
 				{name: "KEYCLOAK_ADMIN"} & config.admin.user,
 				{name: "KEYCLOAK_ADMIN_PASSWORD"} & config.admin.password,

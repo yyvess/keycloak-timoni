@@ -86,12 +86,7 @@ import (
 	service: {
 		annotations?: timoniv1.#Annotations
 		https:        true | *false
-		if https {
-			port: *8443 | int & >0 & <=65535
-		}
-		if !https {
-			port: *8080 | int & >0 & <=65535
-		}
+		port: *[if https {8443}, {8080}][0] | int & >0 & <=65535
 	}
 
 	// Pod optional settings.
@@ -152,12 +147,11 @@ import (
 	}
 
 	database: {
-		if !(replicas > 1) {
+		[if replicas > 1 {
+			type: {value: "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} & {valueFrom?: corev1.#EnvVarSource}
+		}, {
 			type?: *{value: *"dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
-		}
-		if replicas > 1 {
-			type: *{value: "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
-		}
+		}][0]
 		url?: *{value?: string} | corev1.#EnvVarSource
 		username?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}
 		password?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}

@@ -105,7 +105,7 @@ import (
 		if !#config.jksCreate {
 			"cache-ispn.xml": """
 				  <!--
-				  Unsecure configuration that not encrypt key echange
+				  	Unsecure configuration that not encrypt key exchange
 				  -->
 				  <infinispan
 				          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
