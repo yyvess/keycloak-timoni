@@ -144,10 +144,6 @@ import (
 							}
 						}
 						volumeMounts: [
-								{
-									name:      "tmp"
-									mountPath: "/tmp"
-								},
 							if #highAvailability {
 								{
 									name:      "cache"
@@ -181,12 +177,6 @@ import (
 					},
 				]
 				volumes: [
-					{
-						name: "tmp"
-						emptyDir: {
-							sizeLimit: "128Mi"
-						}
-					},
 					if #certSecretName != _|_ {
 						{
 							name: "certs"

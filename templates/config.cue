@@ -97,7 +97,10 @@ import (
 
 	// Pod optional settings.
 	podAnnotations?: {[string]: string}
-	podSecurityContext?: corev1.#PodSecurityContext
+	podSecurityContext: corev1.#PodSecurityContext | *{
+		fsGroup:             1000
+		fsGroupChangePolicy: "OnRootMismatch"
+	}
 	imagePullSecrets?: [...timoniv1.ObjectReference]
 	tolerations?: [...corev1.#Toleration]
 	affinity?: corev1.#Affinity

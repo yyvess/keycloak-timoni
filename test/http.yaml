@@ -122,12 +122,10 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 15
-        volumeMounts:
-        - mountPath: /tmp
-          name: tmp
+        volumeMounts: []
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       serviceAccountName: default
-      volumes:
-      - emptyDir:
-          sizeLimit: 128Mi
-        name: tmp
+      volumes: []
 ---

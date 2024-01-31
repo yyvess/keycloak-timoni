@@ -19,24 +19,10 @@ values: {
 		storageClassName: "sc-kube-playground"
 	}
 
-	httpPort: 80
-	service: port: 80
-
 	resources: {
 		limits: {
 			cpu:    "1000m"
 			memory: "768Mi"
-		}
-	}
-
-	securityContext: {
-		runAsUser:    0
-		runAsGroup:   0
-		runAsNonRoot: false
-		capabilities:
-		{
-			add: ["NET_BIND_SERVICE"]
-			drop: ["ALL"]
 		}
 	}
 
@@ -57,7 +43,7 @@ values: {
 						service: {
 							name: "keycloak-web"
 							port: {
-								number: 80
+								number: 8080
 							}
 						}}
 				}]

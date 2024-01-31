@@ -262,16 +262,14 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
-        - mountPath: /tmp
-          name: tmp
         - mountPath: /opt/keycloak/conf
           name: cache
           readOnly: true
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       serviceAccountName: default
       volumes:
-      - emptyDir:
-          sizeLimit: 128Mi
-        name: tmp
       - configMap:
           items:
           - key: cache-ispn.xml
