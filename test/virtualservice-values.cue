@@ -18,6 +18,7 @@ values: {
 		]
 	}
 
+	networkPolicyCreate: true
 	networkPolicyRules: [{
 		from: [{
 			namespaceSelector: {

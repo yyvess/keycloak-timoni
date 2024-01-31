@@ -89,6 +89,12 @@ import (
 		port:         *[if https {8443}, {8080}][0] | int & >0 & <=65535
 	}
 
+	// Pod ports
+	httpPort?: int & >0 & <=65535
+	if (service.https) {
+		httpsPort?: int & >0 & <=65535
+	}
+
 	// Pod optional settings.
 	podAnnotations?: {[string]: string}
 	podSecurityContext?: corev1.#PodSecurityContext
@@ -107,33 +113,51 @@ import (
 
 	// Issuer used to generate certificate & jks
 	issuerCreate: *false | bool
-	issuer: issuerv1.#IssuerSpec | *{
-		selfSigned: {}
+	if (issuerCreate) {
+		issuer: issuerv1.#IssuerSpec | *{
+			selfSigned: {}
+		}
 	}
 
 	certificateCreate: *false | bool
-	// Web certificate
-	certificate: certv1.#CertificateSpec & {
-		dnsNames: *["localhost:\( service.port )"] | [...string]
-		issuerRef: name: *"\(metadata.name)" | string
-		secretName: "\(metadata.name)-cert"
+	if (certificateCreate) {
+		// Web certificate
+		certificate: certv1.#CertificateSpec & {
+			dnsNames: *["localhost:\( service.port )"] | [...string]
+			issuerRef: name: *"\(metadata.name)" | string
+			secretName: "\(metadata.name)-cert"
+		}
 	}
 
 	jksCreate: *false | bool
-	// Requird to securize Jgroup
-	jks: certv1.#CertificateSpec & {
-		commonName: *"infinispan-jks" | string
-		issuerRef: name: *"\(metadata.name)" | string
-		secretName: "\(metadata.name)-jks"
+	if (jksCreate) {
+		// Requird to securize Jgroup
+		jks: certv1.#CertificateSpec & {
+			commonName: *"infinispan-jks" | string
+			issuerRef: name: *"\(metadata.name)" | string
+			secretName: "\(metadata.name)-jks"
+		}
 	}
 
 	pdbCreate: bool | *(replicas > 1)
-	pdb: policyv1.#PodDisruptionBudgetSpec & {
-		minAvailable: *1 | int & >0 & <=65535
+	if (pdbCreate) {
+		pdb: policyv1.#PodDisruptionBudgetSpec & {
+			minAvailable: *1 | int & >0 & <=65535
+		}
 	}
 
 	networkPolicyCreate: *false | bool
-	networkPolicyRules: [... netv1.#NetworkPolicyIngressRule]
+	if (networkPolicyCreate) {
+		networkPolicyRules: [... netv1.#NetworkPolicyIngressRule]
+	}
+
+	pvcCreate: [if replicas > 1 {false}, bool | *false][0]
+	if (pvcCreate) {
+		pvc: {
+			storageClassName: string
+			size:             string | *"5Gi"
+		}
+	}
 
 	virtualService?: vsv1beta1.#VirtualServiceSpec
 
@@ -149,11 +173,11 @@ import (
 	}
 
 	database: {
-		[if replicas > 1 {
-			type: {value: "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} & {valueFrom?: corev1.#EnvVarSource}
-		}, {
-			type?: *{value: *"dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle"} | {valueFrom?: corev1.#EnvVarSource}
-		}][0]
+		type: [if replicas > 1 {
+			"postgres" | "mariadb" | "mssql" | "mysql" | "oracle"
+		},
+			*"dev-file" | "dev-mem" | "postgres" | "mariadb" | "mssql" | "mysql" | "oracle",
+		][0]
 		url?: *{value?: string} | corev1.#EnvVarSource
 		username?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}
 		password?: *{value?: string} | {valueFrom?: corev1.#EnvVarSource}

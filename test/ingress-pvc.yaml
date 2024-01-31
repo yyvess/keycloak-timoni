@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: zel-test
+  name: test
 ---
 apiVersion: v1
 kind: Service
@@ -12,17 +12,62 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak-web
-  namespace: zel-test
+  namespace: test
 spec:
   ports:
   - appProtocol: http
     name: http
-    port: 8080
+    port: 80
     protocol: TCP
     targetPort: http
   selector:
     app.kubernetes.io/name: keycloak
   type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: test
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100M
+  storageClassName: sc-kube-playground
+  volumeMode: Filesystem
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: test
+spec:
+  ingressClassName: ing-kube-playground
+  rules:
+  - host: keycloak.kube-playground.tolron.fr
+    http:
+      paths:
+      - backend:
+          service:
+            name: keycloak-web
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - keycloak.kube-playground.tolron.fr
+    secretName: cert-kubeplayground
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,7 +77,7 @@ metadata:
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
   name: keycloak
-  namespace: zel-test
+  namespace: test
 spec:
   replicas: 1
   selector:
@@ -58,23 +103,16 @@ spec:
           value: local
         - name: KC_DB
           value: dev-file
+        - name: KC_HTTP_PORT
+          value: "80"
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: my-key
-              name: my-secret
-        - name: KC_HOSTNAME_PORT
-          value: "8080"
-        - name: KC_HOSTNAME_URL
-          value: http://localhost:8080/
+          value: admin
         - name: KC_HOSTNAME_STRICT
           value: "false"
-        - name: KC_HOSTNAME_STRICT_HTTPS
-          value: "false"
-        - name: KC_LOG_LEVEL
-          value: DEBUG
+        - name: KC_PROXY
+          value: edge
         image: quay.io/keycloak/keycloak:23.0.5@sha256:8772ab5e763f3374b7bb70bce4a96ad384b39c548c40007113538e103ee8a8f2
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -88,7 +126,7 @@ spec:
           timeoutSeconds: 10
         name: keycloak
         ports:
-        - containerPort: 8080
+        - containerPort: 80
           name: http
           protocol: TCP
         readinessProbe:
@@ -101,17 +139,24 @@ spec:
           successThreshold: 1
           timeoutSeconds: 10
         resources:
+          limits:
+            cpu: 1000m
+            memory: 768Mi
           requests:
             cpu: 200m
             memory: 768Mi
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
+            add:
+            - NET_BIND_SERVICE
             drop:
             - ALL
           privileged: false
           readOnlyRootFilesystem: false
-          runAsNonRoot: true
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
           seccompProfile:
             type: RuntimeDefault
         startupProbe:
@@ -125,9 +170,14 @@ spec:
         volumeMounts:
         - mountPath: /tmp
           name: tmp
+        - mountPath: /opt/keycloak/data/h2
+          name: data
       serviceAccountName: default
       volumes:
       - emptyDir:
           sizeLimit: 128Mi
         name: tmp
+      - name: data
+        persistentVolumeClaim:
+          claimName: keycloak
 ---

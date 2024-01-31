@@ -43,6 +43,12 @@ package templates
 			}
 		}
 
+		if config.pvcCreate {
+			pvc: #PersistentVolumeClaim & {
+				#config:           config
+			}
+		}
+
 		if config.virtualService != _|_ {
 			virtualService: #VirtualService & {
 				#config: config
@@ -50,7 +56,7 @@ package templates
 		}
 
 		if config.ingress != _|_ {
-			virtualService: #Ingress & {
+			ingress: #Ingress & {
 				#config: config
 			}
 		}
@@ -68,9 +74,6 @@ package templates
 			#envs: [
 				{name: "KEYCLOAK_ADMIN"} & config.admin.user,
 				{name: "KEYCLOAK_ADMIN_PASSWORD"} & config.admin.password,
-				if config.database.type != _|_ {
-					{name: "KC_DB"} & config.database.type
-				},
 				if config.database.url != _|_ {
 					{name: "KC_DB_URL"} & config.database.url
 				},

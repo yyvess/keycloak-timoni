@@ -181,6 +181,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -203,12 +205,12 @@ spec:
           value: kubernetes
         - name: KC_CACHE_CONFIG_FILE
           value: cache-ispn.xml
+        - name: KC_DB
+          value: postgres
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
-        - name: KC_DB
-          value: postgres
         image: quay.io/keycloak/keycloak:23.0.5@sha256:8772ab5e763f3374b7bb70bce4a96ad384b39c548c40007113538e103ee8a8f2
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -260,11 +262,16 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
+        - mountPath: /tmp
+          name: tmp
         - mountPath: /opt/keycloak/conf
           name: cache
           readOnly: true
       serviceAccountName: default
       volumes:
+      - emptyDir:
+          sizeLimit: 128Mi
+        name: tmp
       - configMap:
           items:
           - key: cache-ispn.xml

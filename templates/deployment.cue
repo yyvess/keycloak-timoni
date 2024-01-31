@@ -30,6 +30,11 @@ import (
 	spec: appsv1.#DeploymentSpec & {
 		replicas: #config.replicas
 		selector: matchLabels: #config.selector.labels
+		if #config.pvcCreate != _|_ {
+			strategy: {
+				type: "Recreate"
+			}
+		}
 		template: {
 			metadata: {
 				labels: #config.selector.labels
@@ -68,19 +73,28 @@ import (
 									{name: "KC_HTTPS_CERTIFICATE_FILE", value:     "/certs/tls.crt"},
 									{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}]},
 								[]][0] +
+							[if #config.database.type != _|_ {
+								{name: "KC_DB", value: #config.database.type}
+							}] +
+							[if #config.httpPort != _|_ {
+								{name: "KC_HTTP_PORT", value: "\(#config.httpPort)"}
+							}] +
+							[if #config.service.https && #config.httpsPort != _|_ {
+								{name: "KC_HTTPS_PORT", value: "\(#config.httpsPort)"}
+							}] +
 							[for x in #envs {x}] +
 							[for x in #config.extraEnvs {x}]
 
 						ports: [
 							{
 								name:          "http"
-								containerPort: *#config.envs.KC_HTTP_PORT | 8080
+								containerPort: *#config.httpPort | 8080
 								protocol:      "TCP"
 							},
 							if #config.service.https {
 								{
 									name:          "https"
-									containerPort: *#config.envs.KC_HTTPS_PORT | 8443
+									containerPort: *#config.httpsPort | 8443
 									protocol:      "TCP"
 								}
 							},
@@ -130,6 +144,10 @@ import (
 							}
 						}
 						volumeMounts: [
+								{
+									name:      "tmp"
+									mountPath: "/tmp"
+								},
 							if #highAvailability {
 								{
 									name:      "cache"
@@ -151,12 +169,24 @@ import (
 									readOnly:  true
 								}
 							},
+							if #config.pvcCreate {
+								{
+									name:      "data"
+									mountPath: "/opt/keycloak/data/h2"
+								}
+							},
 						]
 						resources:       #config.resources
 						securityContext: #config.securityContext
 					},
 				]
 				volumes: [
+					{
+						name: "tmp"
+						emptyDir: {
+							sizeLimit: "128Mi"
+						}
+					},
 					if #certSecretName != _|_ {
 						{
 							name: "certs"
@@ -182,6 +212,14 @@ import (
 									key:  "cache-ispn.xml"
 									path: "cache-ispn.xml"
 								}]
+							}
+						}
+					},
+					if #config.pvcCreate {
+						{
+							name: "data"
+							persistentVolumeClaim: {
+								claimName: #config.metadata.name
 							}
 						}
 					},

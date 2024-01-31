@@ -290,6 +290,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -316,12 +318,12 @@ spec:
           value: /certs/tls.crt
         - name: KC_HTTPS_CERTIFICATE_KEY_FILE
           value: /certs/tls.key
+        - name: KC_DB
+          value: postgres
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: admin
-        - name: KC_DB
-          value: postgres
         - name: KC_DB_URL
           value: jdbc:postgresql://localhost/keycloak
         - name: KC_DB_USERNAME
@@ -385,6 +387,8 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
+        - mountPath: /tmp
+          name: tmp
         - mountPath: /opt/keycloak/conf
           name: cache
           readOnly: true
@@ -396,6 +400,9 @@ spec:
           readOnly: true
       serviceAccountName: default
       volumes:
+      - emptyDir:
+          sizeLimit: 128Mi
+        name: tmp
       - name: certs
         secret:
           secretName: keycloak-cert

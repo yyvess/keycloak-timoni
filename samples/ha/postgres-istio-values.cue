@@ -47,7 +47,7 @@ values: {
 		password: {value: "FIXME-USE-SECRET"}
 	}
 	database: {
-		type: {value: "postgres"}
+		type: "postgres"
 		url: {value: "jdbc:postgresql://keycloak.postgres.svc.cluster.local/keycloakdb?sslmode=require"}
 		username: {
 			valueFrom: {

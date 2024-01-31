@@ -26,6 +26,38 @@ spec:
     app.kubernetes.io/name: keycloak
   type: ClusterIP
 ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: timoni
+    app.kubernetes.io/name: keycloak
+    app.kubernetes.io/version: 0.0.0-devel
+  name: keycloak
+  namespace: zel-test
+spec:
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+      podSelector:
+        matchLabels:
+          app: istio-ingressgateway
+    ports:
+    - port: 8080
+      protocol: TCP
+  - from:
+    - podSelector: {}
+    ports:
+    - port: 8080
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: keycloak
+  policyTypes:
+  - Ingress
+---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -71,6 +103,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -87,6 +121,8 @@ spec:
           value: "true"
         - name: KC_CACHE
           value: local
+        - name: KC_DB
+          value: dev-file
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
@@ -144,7 +180,12 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 15
-        volumeMounts: []
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
       serviceAccountName: default
-      volumes: []
+      volumes:
+      - emptyDir:
+          sizeLimit: 128Mi
+        name: tmp
 ---

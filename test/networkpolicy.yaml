@@ -67,6 +67,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -83,6 +85,8 @@ spec:
           value: "true"
         - name: KC_CACHE
           value: local
+        - name: KC_DB
+          value: dev-file
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
@@ -134,7 +138,12 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 30
           periodSeconds: 15
-        volumeMounts: []
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
       serviceAccountName: default
-      volumes: []
+      volumes:
+      - emptyDir:
+          sizeLimit: 128Mi
+        name: tmp
 ---

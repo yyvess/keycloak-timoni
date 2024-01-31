@@ -17,7 +17,7 @@ values: {
 	}
 
 	database: {
-		type: {value: "postgres"}
+		type: "postgres"
 	}
 	admin: {
 		password: {value: "admin"}

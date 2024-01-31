@@ -36,7 +36,7 @@ values: {
 	}
 
 	database: {
-		type: {value: "postgres"}
+		type: "postgres"
 		url: {value: "jdbc:postgresql://localhost/keycloak"}
 		username: {value: "keycloak"}
 		password: {

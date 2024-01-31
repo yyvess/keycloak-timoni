@@ -1,6 +1,10 @@
 #!/bin/bash
 echo "minimum-values"
 timoni -n test build keycloak  ../ --values ../values.cue --values ../samples/minimum/minimum-values.cue > ./minimum.yaml
+echo "ingress-pvc-values"
+timoni -n test build keycloak  ../ --values ../values.cue --values ../samples/minimum/ingress-pvc-values.cue > ./ingress-pvc.yaml
+echo "pvc-values"
+timoni -n test build keycloak  ../ --values ../values.cue --values ./pvc-values.cue > ./pvc.yaml
 echo "http-values"
 timoni -n zel-test  build keycloak  ../ --values ../values.cue --values ./http-values.cue > ./http.yaml
 echo "sa-values"

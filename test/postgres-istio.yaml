@@ -306,6 +306,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: keycloak
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -328,12 +330,12 @@ spec:
           value: kubernetes
         - name: KC_CACHE_CONFIG_FILE
           value: cache-ispn.xml
+        - name: KC_DB
+          value: postgres
         - name: KEYCLOAK_ADMIN
           value: admin
         - name: KEYCLOAK_ADMIN_PASSWORD
           value: FIXME-USE-SECRET
-        - name: KC_DB
-          value: postgres
         - name: KC_DB_URL
           value: jdbc:postgresql://keycloak.postgres.svc.cluster.local/keycloakdb?sslmode=require
         - name: KC_DB_USERNAME
@@ -403,6 +405,8 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 15
         volumeMounts:
+        - mountPath: /tmp
+          name: tmp
         - mountPath: /opt/keycloak/conf
           name: cache
           readOnly: true
@@ -411,6 +415,9 @@ spec:
           readOnly: true
       serviceAccountName: default
       volumes:
+      - emptyDir:
+          sizeLimit: 128Mi
+        name: tmp
       - name: jks
         secret:
           secretName: keycloak-jks
