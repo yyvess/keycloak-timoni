@@ -11,23 +11,27 @@ values: {
 
 	service: https: true
 
-	issuerCreate:        true
-	jksCreate:           true
-	certificateCreate:   true
-	networkPolicyCreate: true
+	jks: enabled:           true
+	networkPolicy: enabled: true
 
 	issuer: {
-		selfSigned: {}
+		enabled: true
+		spec: {
+			selfSigned: {}
+		}
 	}
 
 	certificate: {
-		duration:    "2160h0m0s"
-		renewBefore: "360h0m0s"
-		subject: organizations: ["myorg.com"]
-		privateKey: {
-			algorithm: "RSA"
-			encoding:  "PKCS1"
-			size:      4096
+		enabled: true
+		spec: {
+			duration:    "2160h0m0s"
+			renewBefore: "360h0m0s"
+			subject: organizations: ["myorg.com"]
+			privateKey: {
+				algorithm: "RSA"
+				encoding:  "PKCS1"
+				size:      4096
+			}
 		}
 	}
 

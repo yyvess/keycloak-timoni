@@ -5,21 +5,26 @@ package main
 // Defaults
 values: {
 
-	certificateCreate: true
 	certificate: {
-		issuerRef: {
-			name: "existingIssuer"
+		enabled: true
+		spec: {
+			issuerRef: {
+				name: "existingIssuer"
+			}
 		}
 	}
-	jksCreate: true
+
 	jks: {
-		issuerRef: {
-			name: "existingIssuer"
+		enabled: true
+		spec: {
+			issuerRef: {
+				name: "existingIssuer"
+			}
 		}
 	}
 
 	serviceAccount: {
-		metadata: name: "existing-sa"
+		enabled: true
 	}
 
 	admin: {

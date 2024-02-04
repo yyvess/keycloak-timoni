@@ -17,7 +17,7 @@ import (
 				#config.selector.labels
 			}}
 		ingress: [
-			for v in #config.networkPolicyRules {
+			for v in #config.networkPolicy.rules {
 				v
 			},
 			// Allow all pod in the same namespance

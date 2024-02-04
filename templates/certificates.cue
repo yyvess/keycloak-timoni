@@ -9,7 +9,7 @@ import (
 #Certificate: v1.#Certificate & {
 	#config:  #Config
 	metadata: #config.metadata
-	spec: #config.certificate & {
+	spec: #config.certificate.spec & {
 		issuerRef: {
 			group: "cert-manager.io"
 			kind:  "Issuer"
@@ -42,7 +42,7 @@ import (
 		#Meta:      #config.metadata
 		#Component: "jks"
 	}
-	spec: #config.jks & {
+	spec: #config.jks.spec & {
 		issuerRef: {
 			group: "cert-manager.io"
 			kind:  "Issuer"
@@ -62,5 +62,5 @@ import (
 #Issuer: issuerv1.#Issuer & {
 	#config:  #Config
 	metadata: #config.metadata
-	spec:     #config.issuer
+	spec:     #config.issuer.spec
 }

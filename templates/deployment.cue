@@ -30,7 +30,7 @@ import (
 	spec: appsv1.#DeploymentSpec & {
 		replicas: #config.replicas
 		selector: matchLabels: #config.selector.labels
-		if #config.pvcCreate != _|_ {
+		if #config.pvc.enabled != _|_ {
 			strategy: {
 				type: "Recreate"
 			}
@@ -43,11 +43,11 @@ import (
 				}
 			}
 			spec: corev1.#PodSpec & {
-				if #config.serviceAccountCreate {
-					serviceAccountName: *#config.serviceAccount.metadata.name | #config.metadata.name
+				if #config.serviceAccount.enabled {
+					serviceAccountName: #config.metadata.name
 				}
-				if !#config.serviceAccountCreate {
-					serviceAccountName: *#config.serviceAccount.metadata.name | "default"
+				if !#config.serviceAccount.enabled {
+					serviceAccountName: "default"
 				}
 				containers: [
 					{
@@ -68,7 +68,7 @@ import (
 									{name: "KC_CACHE_CONFIG_FILE", value: "cache-ispn.xml"}]},
 								[
 									{name: "KC_CACHE", value: "local"}]][0] +
-							[if #config.certificateCreate {
+							[if #config.certificate.enabled {
 								[
 									{name: "KC_HTTPS_CERTIFICATE_FILE", value:     "/certs/tls.crt"},
 									{name: "KC_HTTPS_CERTIFICATE_KEY_FILE", value: "/certs/tls.key"}]},
@@ -165,7 +165,7 @@ import (
 									readOnly:  true
 								}
 							},
-							if #config.pvcCreate {
+							if #config.pvc.enabled {
 								{
 									name:      "data"
 									mountPath: "/opt/keycloak/data/h2"
@@ -205,7 +205,7 @@ import (
 							}
 						}
 					},
-					if #config.pvcCreate {
+					if #config.pvc.enabled {
 						{
 							name: "data"
 							persistentVolumeClaim: {

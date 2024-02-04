@@ -13,8 +13,8 @@ values: {
 
 	#hostname: "keycloak.kube-playground.tolron.fr"
 
-	pvcCreate: true
 	pvc: {
+		enabled: true
 		size:             "100M"
 		storageClassName: "sc-kube-playground"
 	}

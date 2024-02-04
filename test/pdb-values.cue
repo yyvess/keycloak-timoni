@@ -12,8 +12,10 @@ values: {
 	replicas: 4
 
 	pdb: {
-		minAvailable:   2
-		maxUnavailable: 1
+		spec: {
+			minAvailable:   2
+			maxUnavailable: 1
+		}
 	}
 
 	database: {

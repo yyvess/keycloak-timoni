@@ -89,7 +89,7 @@ import (
 		port:         *[if https {8443}, {8080}][0] | int & >0 & <=65535
 	}
 
-	// Pod ports
+	// Pod exposed ports
 	httpPort?: int & >0 & <=65535
 	if (service.https) {
 		httpsPort?: int & >0 & <=65535
@@ -111,55 +111,56 @@ import (
 
 	extraEnvs: [...corev1.#EnvVar] | *[]
 
-	serviceAccountCreate: *false | bool
-	serviceAccount:       corev1.#ServiceAccount
+	serviceAccount: {
+		enabled: *false | bool
+	}
 
 	// Issuer used to generate certificate & jks
-	issuerCreate: *false | bool
-	if (issuerCreate) {
-		issuer: issuerv1.#IssuerSpec | *{
+	issuer: {
+		enabled: *false | bool
+		spec: issuerv1.#IssuerSpec | *{
 			selfSigned: {}
 		}
 	}
 
-	certificateCreate: *false | bool
-	if (certificateCreate) {
-		// Web certificate
-		certificate: certv1.#CertificateSpec & {
+	// Web certificate
+	certificate: {
+		enabled: *false | bool
+		spec: certv1.#CertificateSpec & {
 			dnsNames: *["localhost:\( service.port )"] | [...string]
 			issuerRef: name: *"\(metadata.name)" | string
 			secretName: "\(metadata.name)-cert"
 		}
 	}
 
-	jksCreate: *false | bool
-	if (jksCreate) {
-		// Requird to securize Jgroup
-		jks: certv1.#CertificateSpec & {
+	// Jks certificate for Jgroup
+	jks: {
+		enabled: *false | bool
+		spec: certv1.#CertificateSpec & {
 			commonName: *"infinispan-jks" | string
 			issuerRef: name: *"\(metadata.name)" | string
 			secretName: "\(metadata.name)-jks"
 		}
 	}
 
-	pdbCreate: bool | *(replicas > 1)
-	if (pdbCreate) {
-		pdb: policyv1.#PodDisruptionBudgetSpec & {
+	pdb: {
+		enabled: bool | *(replicas > 1)
+		spec: policyv1.#PodDisruptionBudgetSpec & {
 			minAvailable: *1 | int & >0 & <=65535
 		}
 	}
 
-	networkPolicyCreate: *false | bool
-	if (networkPolicyCreate) {
-		networkPolicyRules: [... netv1.#NetworkPolicyIngressRule]
+	networkPolicy: {
+		enabled: *false | bool
+		if networkPolicy.enabled {
+			rules: [... netv1.#NetworkPolicyIngressRule]
+		}
 	}
 
-	pvcCreate: [if replicas > 1 {false}, bool | *false][0]
-	if (pvcCreate) {
-		pvc: {
-			storageClassName: string
-			size:             string | *"5Gi"
-		}
+	pvc: {
+		enabled:          [if replicas > 1 {false}, bool | *false][0]
+		storageClassName: *"standard" | string
+		size:             *"1Gi" | string
 	}
 
 	virtualService?: vsv1beta1.#VirtualServiceSpec

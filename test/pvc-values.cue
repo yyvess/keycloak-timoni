@@ -11,8 +11,8 @@ package main
 // Defaults
 values: {
 
-	pvcCreate: true
 	pvc: {
+		enabled: true
 		storageClassName: "test"
 	}
 

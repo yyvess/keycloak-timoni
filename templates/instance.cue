@@ -8,13 +8,13 @@ package templates
 
 		namespace: #Namespace & {#config: config}
 
-		if config.serviceAccountCreate {
+		if config.serviceAccount.enabled {
 			sa: #ServiceAccount & {#config: config}
 		}
-		if config.certificateCreate {
+		if config.certificate.enabled {
 			cert: #Certificate & {#config: config}
 		}
-		if config.jksCreate {
+		if config.jks.enabled {
 			// Next version of certmanager the secret should optional and can be remove
 			// https://github.com/cert-manager/cert-manager/pull/6657#discussion_r1464958155
 			jksPassword: #JksSecret & {#config: config}
@@ -23,7 +23,7 @@ package templates
 				#secretName: jksPassword.metadata.name
 			}
 		}
-		if config.issuerCreate {
+		if config.issuer.enabled {
 			issuer: #Issuer & {#config: config}
 		}
 		svcHttp: #ServiceHttp & {#config: config}
@@ -32,20 +32,20 @@ package templates
 			cm: #ConfigMapIspn & {#config: config}
 		}
 
-		if config.pdbCreate {
+		if config.pdb.enabled {
 			pdb: #PodDisruptionBudget & {#config: config}
 		}
 
-		if config.networkPolicyCreate {
+		if config.networkPolicy.enabled {
 			networkPolicy: #NetworkPolicy & {
 				#config:           config
 				#highAvailability: highAvailability
 			}
 		}
 
-		if config.pvcCreate {
+		if config.pvc.enabled {
 			pvc: #PersistentVolumeClaim & {
-				#config:           config
+				#config: config
 			}
 		}
 

@@ -6,13 +6,11 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  annotations:
-    custom: test
   labels:
     app.kubernetes.io/managed-by: timoni
     app.kubernetes.io/name: keycloak
     app.kubernetes.io/version: 0.0.0-devel
-  name: custom-sa
+  name: keycloak
   namespace: test
 ---
 apiVersion: v1
@@ -125,6 +123,6 @@ spec:
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
-      serviceAccountName: custom-sa
+      serviceAccountName: keycloak
       volumes: []
 ---

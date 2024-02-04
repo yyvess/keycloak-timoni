@@ -19,30 +19,31 @@ values: {
 			"keycloak.myorg.com",
 		]
 	}
-	issuerCreate:        true
-	jksCreate:           true
-	networkPolicyCreate: true
-
-	networkPolicyRules: [{
-		from: [{
-			namespaceSelector: {
-				matchLabels: {
-					"kubernetes.io/metadata.name": "istio-system"
+	issuer: enabled: true
+	jks: enabled:    true
+	networkPolicy: {
+		enabled: true
+		rules: [{
+			from: [{
+				namespaceSelector: {
+					matchLabels: {
+						"kubernetes.io/metadata.name": "istio-system"
+					}
 				}
-			}
-			podSelector: {
-				matchLabels: {
-					app: "istio-ingressgateway"
+				podSelector: {
+					matchLabels: {
+						app: "istio-ingressgateway"
+					}
 				}
-			}
-		},
+			},
+			]
+			ports: [{
+				protocol: "TCP"
+				port:     8080
+			},
+			]},
 		]
-		ports: [{
-			protocol: "TCP"
-			port:     8080
-		},
-		]},
-	]
+	}
 	admin: {
 		password: {value: "FIXME-USE-SECRET"}
 	}
