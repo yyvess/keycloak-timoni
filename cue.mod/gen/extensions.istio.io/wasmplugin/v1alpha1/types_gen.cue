@@ -41,7 +41,7 @@ import (
 	failStrategy?: "FAIL_CLOSE" | "FAIL_OPEN"
 
 	// The pull behaviour to be applied when fetching Wasm module by
-	// either OCI image or http/https.
+	// either OCI image or `http/https`.
 	imagePullPolicy?: "UNSPECIFIED_POLICY" | "IfNotPresent" | "Always"
 
 	// Credentials to use for OCI image pulling.

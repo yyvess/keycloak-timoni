@@ -313,7 +313,12 @@ import "strings"
 			} | {
 				regex: _
 			}) | {
+				exact?:  string
 				prefix?: string
+
+				// RE2 style regex-based match
+				// (https://github.com/google/re2/wiki/Syntax).
+				regex?: string
 			}
 
 			// withoutHeader has the same syntax with the header, but has
